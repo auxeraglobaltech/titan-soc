@@ -1,0 +1,20 @@
+# Xcelium simulation outputs
+sim/runs/*
+!sim/runs/.gitkeep
+xcelium.d/
+xrun.log
+xrun.history
+*.shm/
+*.vcd
+*.fsdb
+
+# Compiled C objects
+*.o
+*.elf
+*.bin
+*.map
+
+# Editor
+.vscode/
+*.swp
+*~
