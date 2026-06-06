@@ -41,11 +41,14 @@ is reused verbatim from OpenTitan upstream; trainees extend it, not replace it.
 
 ### 2.3 Pinned OpenTitan commit
 
-```
-365c167ef632534a1282c780d8b990f46dfbccbf
-```
+| Field | Value |
+|-------|-------|
+| Hash | `365c167ef632534a1282c780d8b990f46dfbccbf` |
+| Date | 2026-06-04 17:32:08 UTC |
+| Subject | `ujson: Workaround nested-type byte-tracking bug` |
+| Submodule path | `vendor/opentitan/` |
 
-- The submodule is added at `vendor/opentitan/` in Phase 1.
+- Submodule added in Phase 1; HEAD is detached at this exact hash.
 - The commit is pinned to ensure reproducibility. Upgrades are explicit and
   reviewed.
 
@@ -68,8 +71,6 @@ Relevant binaries:
 - Pass condition: write `1` (non-zero) to the `tohost` symbol before returning.
 - Fail condition: write `0` to `tohost`, or loop indefinitely.
 
-<!-- TODO: confirm exact tohost symbol name and address from OpenTitan memory map
-     once vendor submodule is added -->
 
 ### 2.6 Boot strategy
 
@@ -78,10 +79,9 @@ Relevant binaries:
 - The TEST ROM performs minimal hardware initialization and then jumps to the
   test payload loaded into SRAM.
 - Trainees do NOT write CRT0 / chip startup code.
-- The TEST ROM path in the vendor tree is:
-  <!-- TODO: confirm path — expected near
-       vendor/opentitan/sw/device/lib/testing/test_framework/
-       or vendor/opentitan/sw/device/silicon_creator/rom/ -->
+- TEST ROM source path in the vendor tree:
+  `vendor/opentitan/sw/device/lib/testing/test_rom/`  
+  Key files: `test_rom.c`, `test_rom_start.S`, `test_rom.ld`
 
 ---
 
@@ -124,4 +124,4 @@ Both repos share:
 
 ---
 
-*Last updated: Phase 0 — repo skeleton.*
+*Last updated: Phase 1 — OpenTitan submodule pinned.*

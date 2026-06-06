@@ -1,0 +1,3 @@
+[submodule "vendor/opentitan"]
+	path = vendor/opentitan
+	url = https://github.com/lowRISC/opentitan
