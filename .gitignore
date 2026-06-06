@@ -18,6 +18,10 @@ xrun.history
 vendor/opentitan/.bin/
 ~/.cache/bazel/
 
+# Project Python virtual environment (Phase 2.5)
+# Recreate with scripts/activate_env.sh / the documented steps in docs/SETUP.md.
+.venv/
+
 # Editor
 .vscode/
 *.swp

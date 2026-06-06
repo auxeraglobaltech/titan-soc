@@ -1,7 +1,20 @@
-# Phase 2 Setup — Prerequisites and Verified Commands
+# Setup — Prerequisites and Verified Commands
 
 This document records every prerequisite, version, and command that was verified
-working on the titan-soc training server during Phase 2 (2026-06-06).
+working on the titan-soc training server during Phase 2 (2026-06-06) and
+Phase 2.5 (Python 3.11 environment, 2026-06-06).
+
+> **IMPORTANT — read first.** All later phases (chip bring-up, dvsim flows,
+> regtool/topgen, RAL generation) **must activate the project Python environment
+> first**:
+>
+> ```bash
+> source scripts/activate_env.sh
+> ```
+>
+> This selects the isolated **Python 3.11.15** interpreter and the hash-pinned
+> OpenTitan package set. The system Python (3.9) does **not** satisfy OpenTitan's
+> requirements and is never used. See §1.
 
 ---
 
@@ -10,10 +23,12 @@ working on the titan-soc training server during Phase 2 (2026-06-06).
 | Item | Value |
 |------|-------|
 | OS | RHEL 9 / Linux 5.14 (x86_64) |
-| Python | 3.9.25 |
+| System Python (untouched) | 3.9.25 at `/usr/bin/python3` |
+| Project Python (Phase 2.5) | 3.11.15 — isolated, see §1 |
 | RISC-V GCC | 16.1.0 |
 | GNU Binutils | 2.46 |
-| FuseSoC | 2.4.6 |
+| FuseSoC | 2.4.5 (in venv, OT-pinned) |
+| dvsim | 1.34.1 (in venv) |
 | Bazelisk | v1.24.1 |
 | Bazel | 8.0.1 |
 | Xcelium | not on PATH at Phase 2 — licensed, installed separately |
@@ -24,40 +39,133 @@ working on the titan-soc training server during Phase 2 (2026-06-06).
 
 ```bash
 cd /path/to/titan-soc
-bash scripts/setup_env.sh
+bash scripts/setup_env.sh        # checks tools, installs fusesoc/bazel, prints C build cmds
+source scripts/activate_env.sh   # activates the Python 3.11 venv (Phase 2.5)
 ```
 
-The script checks and installs prerequisites, then prints compile/link commands.
-It never invokes `xrun`.
+`setup_env.sh` never invokes `xrun`. `activate_env.sh` only sets up the
+Python environment; it runs no simulator.
 
 ---
 
-## 1. Python
+## 1. Python (Phase 2.5 — isolated 3.11 interpreter)
 
-**Required: Python 3.9+ (3.10+ recommended for full OpenTitan python-requirements)**
+### The problem (discovered in Phase 2)
 
-```bash
-python3 --version   # Python 3.9.25 on training server
-```
-
-### Python packages — known constraint
-
-OpenTitan's `python-requirements.txt` (at pinned commit) pins `click==8.3.1`,
-which requires Python ≥ 3.10. On Python 3.9 the hash-pinned install fails:
+The system Python is **3.9.25**. OpenTitan's `python-requirements.txt` (at the
+pinned commit) pins `click==8.3.1`, which requires Python ≥ 3.10. On Python 3.9
+the hash-pinned install fails hard:
 
 ```
 ERROR: No matching distribution found for click==8.3.1
 ```
 
-**Workaround for Python 3.9:** Install FuseSoC standalone (see §3) and install
-only the Python packages actually needed for our workflow:
+### Why not pyenv / build-from-source
 
-```bash
-pip3 install --user fusesoc
+Hard constraints forbid touching the system Python (the OS depends on it), and
+there is **no sudo**. A pyenv/source build was ruled out because the required
+dev headers are **missing** and cannot be installed:
+
+```
+MISSING /usr/include/openssl/ssl.h    -> no `ssl` module -> pip can't reach PyPI
+MISSING /usr/include/ffi.h            -> no `ctypes`     -> many wheels fail
+MISSING /usr/include/sqlite3.h, bzlib.h
 ```
 
-Full OpenTitan tooling (regtool, topgen, dvsim) requires Python ≥ 3.10.
-**Recommended:** upgrade the training server to Python 3.10 or 3.11 for Phase 3.
+A source build would silently produce a crippled interpreter.
+
+### Chosen method — prebuilt standalone interpreter
+
+We use a **`python-build-standalone`** prebuilt interpreter (the same
+self-contained CPython builds that `uv`/`rye` use). It bundles its own OpenSSL,
+libffi, sqlite, bz2, lzma — no system dev headers, no sudo, fully relocatable.
+
+| Item | Value |
+|------|-------|
+| Distribution | astral-sh/python-build-standalone, release `20260602` |
+| Asset | `cpython-3.11.15+20260602-x86_64-unknown-linux-gnu-install_only.tar.gz` |
+| SHA256 | `1702759f4b44d71d307bc876ef913495461790c9fcfa20d1f67270b22170cd09` (verified against release `SHA256SUMS`) |
+| Installed at | `~/.local/opt/python-3.11.15-titan/` |
+| Bundled OpenSSL | 3.5.6 |
+
+Provisioning (run once; recorded here for reproducibility):
+
+```bash
+URL="https://github.com/astral-sh/python-build-standalone/releases/download/20260602/cpython-3.11.15%2B20260602-x86_64-unknown-linux-gnu-install_only.tar.gz"
+curl -sSfL -o /tmp/cpython-3.11.15.tar.gz "$URL"
+# verify against the release SHA256SUMS before extracting
+mkdir -p ~/.local/opt
+tar -xzf /tmp/cpython-3.11.15.tar.gz -C ~/.local/opt
+mv ~/.local/opt/python ~/.local/opt/python-3.11.15-titan
+```
+
+### Project virtual environment
+
+A venv built **on the 3.11 interpreter** (never on system 3.9) lives at
+`titan-soc/.venv` (gitignored):
+
+```bash
+~/.local/opt/python-3.11.15-titan/bin/python3 -m venv titan-soc/.venv
+source titan-soc/.venv/bin/activate
+python -m pip install --upgrade pip
+```
+
+### Install OpenTitan requirements (hash-pinned, clean)
+
+```bash
+source scripts/activate_env.sh   # or: source .venv/bin/activate
+pip install --require-hashes -r vendor/opentitan/python-requirements.txt
+```
+
+Result: **clean install, no conflicts, no overrides.** All 900+ hashed entries
+resolved. Five sdists built local wheels (crcmod, msgpack-python, pyfinite,
+siphash, termcolor). Key pinned versions actually installed:
+
+| Package | Version |
+|---------|---------|
+| click | 8.3.1 |
+| dvsim | 1.34.1 |
+| fusesoc | 2.4.5 |
+| pydantic | 2.12.5 |
+| hjson | 3.1.0 |
+| Mako | 1.3.10 |
+
+Full freeze captured at `docs/phase2.5-pip-freeze.txt`.
+
+> Note: this venv pins **fusesoc 2.4.5** (the OT-pinned version), which supersedes
+> the standalone `fusesoc 2.4.6` installed to `~/.local` in Phase 2. Always work
+> inside the activated venv.
+
+### Activation (use in EVERY later phase)
+
+```bash
+source scripts/activate_env.sh
+```
+
+This selects the 3.11 venv, exports `REPO_TOP=vendor/opentitan`, and prints the
+active python/dvsim/fusesoc. See `scripts/activate_env.sh`.
+
+### Verification (Phase 2.5 — no simulator run)
+
+```text
+$ python --version
+Python 3.11.15
+
+$ python -c "import click; print(click.__version__)"
+8.3.1
+
+$ python -c "import dvsim; print('ok')"
+ok
+
+$ dvsim --help        # usage print only — NO flow, NO xrun
+usage: dvsim <cfg-hjson-file> [-h] [options]
+dvsim is a command line tool to deploy ASIC tool flows.
+...
+(exit code 0)
+```
+
+At this pinned commit OpenTitan ships **no `util/dvsim.py`** — dvsim is the
+pip-installed package (entry point: the `dvsim` console script in the venv).
 
 ---
 
@@ -225,7 +333,8 @@ Both produced successfully at Phase 2.
 
 ## 7. What Phase 3 needs
 
-- Python ≥ 3.10 on the server (for full OpenTitan python-requirements).
+- ✅ Python ≥ 3.10 — **resolved in Phase 2.5** (isolated 3.11.15 venv; see §1).
+  Always `source scripts/activate_env.sh` first.
 - Xcelium on PATH (for elaboration and simulation).
 - FuseSoC core registration: `fusesoc library add opentitan vendor/opentitan`.
 - xrun elaboration command (to be derived from `chip_sim.core` and OpenTitan DV
@@ -233,4 +342,5 @@ Both produced successfully at Phase 2.
 
 ---
 
-*Last updated: Phase 2 — C toolchain proven, prerequisites installed.*
+*Last updated: Phase 2.5 — isolated Python 3.11 environment provisioned; OpenTitan
+python-requirements installed clean; dvsim entry point verified.*
