@@ -14,6 +14,10 @@ xrun.history
 *.bin
 *.map
 
+# Bazel / Bazelisk cache (downloaded by vendor/opentitan/bazelisk.sh)
+vendor/opentitan/.bin/
+~/.cache/bazel/
+
 # Editor
 .vscode/
 *.swp
