@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""
+srec_cat shim — implements only the subset used by OpenTitan's transform.bzl:
+
+  srec_cat <input> --binary
+           --offset 0x0
+           --byte-swap <N>
+           --fill 0xff -within <input> -binary -range-pad <N>
+           --output <output>
+           --vmem <word_bits>
+
+Converts a flat binary to a VMEM file with word-swapped bytes, using only
+the Python standard library (no srecord package required).
+"""
+
+import sys
+import argparse
+import math
+import os
+
+
+def parse_args():
+    # srec_cat uses a positional/flag mix; parse minimally for OT's invocation.
+    args = sys.argv[1:]
+    src = None
+    output = None
+    word_bits = None
+    byte_swap = None
+    fill_byte = 0xFF
+
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a == "--binary" or a == "-binary":
+            pass
+        elif a == "--offset":
+            i += 1  # value ignored (always 0x0 in OT usage)
+        elif a == "--byte-swap":
+            i += 1
+            byte_swap = int(args[i])
+        elif a == "--fill":
+            i += 1
+            fill_byte = int(args[i], 0)
+        elif a == "-within":
+            i += 1  # value is same as src; skip
+        elif a == "-range-pad":
+            i += 1  # same as byte_swap; handled by padding logic
+        elif a == "--output":
+            i += 1
+            output = args[i]
+        elif a == "--vmem":
+            i += 1
+            word_bits = int(args[i])
+        elif not a.startswith("-"):
+            if src is None:
+                src = a
+        i += 1
+
+    if not src or not output or word_bits is None:
+        sys.exit(f"srec_cat shim: missing required args (src={src}, output={output}, vmem={word_bits})")
+    if byte_swap is None:
+        byte_swap = word_bits // 8
+
+    return src, output, word_bits, byte_swap, fill_byte
+
+
+def to_vmem(src_path, out_path, word_bits, word_bytes, fill_byte):
+    with open(src_path, "rb") as f:
+        data = bytearray(f.read())
+
+    # Pad to a multiple of word_bytes with fill_byte
+    rem = len(data) % word_bytes
+    if rem:
+        data += bytearray([fill_byte] * (word_bytes - rem))
+
+    words_per_line = 1  # OT srec_cat usage: one word per VMEM line
+    num_words = len(data) // word_bytes
+    addr_digits = max(8, math.ceil(math.log2(max(num_words, 1) + 1) / 4))
+
+    lines = []
+    for i in range(num_words):
+        chunk = data[i * word_bytes: (i + 1) * word_bytes]
+        # byte-swap: reverse the bytes within each word
+        swapped = bytes(reversed(chunk))
+        hex_word = swapped.hex().upper()
+        lines.append(f"@{i:0{addr_digits}X} {hex_word}")
+
+    with open(out_path, "w") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+def main():
+    src, output, word_bits, byte_swap, fill_byte = parse_args()
+    word_bytes = word_bits // 8
+    to_vmem(src, output, word_bits, word_bytes, fill_byte)
+
+
+if __name__ == "__main__":
+    main()

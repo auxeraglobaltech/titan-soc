@@ -42,6 +42,11 @@ source "${_TITAN_VENV}/bin/activate"
 # Put the OpenTitan repo on PATH/PYTHONPATH for its util scripts (regtool etc.)
 export REPO_TOP="${_TITAN_REPO}/vendor/opentitan"
 
+# srec_cat shim (Python replacement for the srecord host package).
+# Lives in the repo (scripts/srec_cat) so a fresh clone works without any
+# machine-local install; ~/.local/bin kept as fallback for other host tools.
+export PATH="${_TITAN_REPO}/scripts:${HOME}/.local/bin:${PATH}"
+
 echo "titan-soc environment active:"
 echo "  python : $(python --version 2>&1)  ($(command -v python))"
 echo "  dvsim  : $(command -v dvsim || echo 'not found')"
