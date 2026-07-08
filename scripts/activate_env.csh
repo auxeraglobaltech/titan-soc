@@ -16,6 +16,14 @@ if (! -e scripts/activate_env.csh) then
 else
     set _titan_repo = $cwd
 
+    # Cadence tools (xrun/simvision): pull in ~/cshrc if xrun is not already
+    # on PATH. Done FIRST so the venv still ends up in front afterwards.
+    # (banner/clear output silenced)
+    which xrun >& /dev/null
+    if ($status != 0 && -e ~/cshrc) then
+        source ~/cshrc >& /dev/null
+    endif
+
     # Isolated interpreter that backs the venv (documentation/repair only)
     setenv TITAN_BASE_PYTHON ${HOME}/.local/opt/python-3.11.15-titan/bin/python3
 
@@ -51,6 +59,7 @@ else
         echo "  python : `python --version`  (`which python`)"
         echo "  dvsim  : `which dvsim`"
         echo "  fusesoc: `fusesoc --version`"
+        echo "  xrun   : `which xrun`"
         echo "  REPO_TOP=${REPO_TOP}"
     endif
 endif
