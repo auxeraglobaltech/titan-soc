@@ -1,0 +1,313 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1580" height="1130" viewBox="0 0 1580 1130" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2e4057"/>
+    </marker>
+    <marker id="arrO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d97706"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#cc3344"/>
+    </marker>
+    <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c07f10"/>
+    </marker>
+  </defs>
+  <style>
+    .blk       { fill:#ffffff; stroke:#3d4a5f; stroke-width:1.2; rx:5; }
+    .blkname   { font-size:11.5px; font-weight:bold; fill:#25303f; text-anchor:middle; }
+    .blksub    { font-size:9px;  fill:#5a6577; text-anchor:middle; }
+    .blksub2   { font-size:8.5px; fill:#7a8494; text-anchor:middle; }
+    .grptitle  { font-size:11px; font-weight:bold; fill:#4a5568; letter-spacing:1px; }
+    .bartxt    { font-size:12.5px; font-weight:bold; fill:#ffffff; text-anchor:middle; }
+    .stub      { stroke:#2e4057; stroke-width:2; }
+    .note      { font-size:9.5px; fill:#5a6577; }
+    .facts     { font-size:10.5px; fill:#3a4454; }
+  </style>
+
+  <!-- ===================== canvas background ===================== -->
+  <rect x="0" y="0" width="1580" height="1130" fill="#ffffff"/>
+
+  <!-- ===================== title ===================== -->
+  <text x="790" y="40" text-anchor="middle" font-size="21" font-weight="bold" fill="#25303f">titan-soc &#183; OpenTitan Earl Grey SoC &#8212; verified architecture</text>
+
+  <!-- ===================== UVM testbench frame ===================== -->
+  <rect x="20" y="60" width="1540" height="1048" rx="10" fill="none" stroke="#7a869a" stroke-width="1.6" stroke-dasharray="9 6"/>
+  <text x="40" y="1098" font-size="12" font-style="italic" fill="#7a869a">chip-level UVM testbench &#8212; OpenTitan DV environment (hw/top_earlgrey/dv) reused verbatim (Option B), running on Cadence Xcelium via dvsim</text>
+
+  <!-- ===================== chip boundary ===================== -->
+  <rect x="45" y="85" width="1375" height="930" rx="12" fill="#f7f9fc" stroke="#45516b" stroke-width="2"/>
+  <text x="65" y="110" font-size="15" font-weight="bold" fill="#25303f">top_earlgrey &#8212; Earl Grey SoC</text>
+
+  <!-- ===================== CPU cluster ===================== -->
+  <!-- rv_dm -->
+  <rect class="blk" x="70" y="150" width="160" height="85" rx="5"/>
+  <text class="blkname" x="150" y="172">rv_dm</text>
+  <text class="blksub"  x="150" y="188">RISC-V debug module</text>
+  <text class="blksub2" x="150" y="202">JTAG &#183; SBA host</text>
+  <text class="blksub2" x="150" y="215">+ regs/mem device ports</text>
+  <line x1="45" y1="192" x2="68" y2="192" stroke="#3d4a5f" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text class="note" x="48" y="185">JTAG</text>
+
+  <!-- Ibex core -->
+  <rect class="blk" x="270" y="130" width="300" height="125" rx="6" stroke-width="1.8"/>
+  <text x="420" y="158" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#25303f">rv_core_ibex</text>
+  <text class="blksub" x="420" y="176">Ibex RV32IMCB @ clk_main</text>
+  <text class="blksub" x="420" y="190">instruction cache &#183; PMP/ePMP &#183; cfg CSR dev port</text>
+  <text class="blksub2" x="330" y="247">corei (I-fetch)</text>
+  <text class="blksub2" x="470" y="247">cored (load/store)</text>
+
+  <!-- rv_plic -->
+  <rect class="blk" x="610" y="150" width="180" height="85" rx="5"/>
+  <text class="blkname" x="700" y="174">rv_plic</text>
+  <text class="blksub"  x="700" y="190">platform-level interrupt ctrl</text>
+  <text class="blksub2" x="700" y="204">~180 sources &#8594; MEIP</text>
+  <line x1="610" y1="192" x2="572" y2="192" stroke="#d97706" stroke-width="1.8" marker-end="url(#arrO)"/>
+  <text x="591" y="185" text-anchor="middle" font-size="9" fill="#d97706" font-weight="bold">IRQ</text>
+  <line x1="830" y1="192" x2="792" y2="192" stroke="#d97706" stroke-width="1.8" marker-end="url(#arrO)"/>
+  <text x="836" y="196" font-size="9" fill="#d97706">irqs from all IPs</text>
+
+  <!-- facts / legend box -->
+  <rect x="1000" y="115" width="390" height="150" rx="7" fill="#fbfbf3" stroke="#8a97a8" stroke-width="1.2"/>
+  <text x="1015" y="136" font-size="12.5" font-weight="bold" fill="#25303f">titan-soc bring-up &#8212; Phase 4 &#10003; (2026-07-08)</text>
+  <text class="facts" x="1015" y="155">OpenTitan pinned 365c167e &#183; Xcelium 25.03 &#183; dvsim</text>
+  <text class="facts" x="1015" y="172">smoke regression 5/5 PASS &#183; 6 tests registered</text>
+  <text class="facts" x="1015" y="189">boot: TEST ROM (1) &#8594; flash slot A OTTF C test (2)</text>
+  <text class="facts" x="1015" y="206">&#8594; SW status word 0x411f0080 (3) &#8594; UVM verdict</text>
+  <circle cx="1022" cy="228" r="8" fill="#1a7f37"/><text x="1022" y="232" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">&#10003;</text>
+  <text class="facts" x="1037" y="232">passing in smoke regression</text>
+  <circle cx="1212" cy="228" r="8" fill="#2e4057"/><text x="1212" y="232" text-anchor="middle" font-size="9.5" fill="#fff" font-weight="bold">n</text>
+  <text class="facts" x="1227" y="232">boot-flow step</text>
+  <line x1="1015" y1="248" x2="1035" y2="248" stroke="#d97706" stroke-width="2"/><text class="facts" x="1040" y="252">interrupts</text>
+  <line x1="1115" y1="248" x2="1135" y2="248" stroke="#cc3344" stroke-width="1.6" stroke-dasharray="4 3"/><text class="facts" x="1140" y="252">alerts/escalation</text>
+  <line x1="1255" y1="248" x2="1275" y2="248" stroke="#c07f10" stroke-width="1.6" stroke-dasharray="4 3"/><text class="facts" x="1280" y="252">entropy</text>
+
+  <!-- host arrows into xbar_main -->
+  <line class="stub" x1="330" y1="255" x2="330" y2="298" marker-end="url(#arr)"/>
+  <line class="stub" x1="470" y1="255" x2="470" y2="298" marker-end="url(#arr)"/>
+  <line class="stub" x1="150" y1="235" x2="150" y2="298" marker-end="url(#arr)"/>
+  <text class="blksub2" x="163" y="270">SBA</text>
+  <line class="stub" x1="700" y1="235" x2="700" y2="298" marker-end="url(#arr)"/>
+
+  <!-- ===================== xbar_main ===================== -->
+  <rect x="70" y="300" width="1320" height="44" rx="6" fill="#2e4057"/>
+  <text class="bartxt" x="730" y="327">xbar_main &#8212; TL-UL crossbar &#183; hosts: Ibex corei / cored, rv_dm SBA &#183; 24 device ports &#183; clk_main</text>
+
+  <!-- stubs from main bar to row-B groups -->
+  <line class="stub" x1="250"  y1="344" x2="250"  y2="388" marker-end="url(#arr)"/>
+  <line class="stub" x1="665"  y1="344" x2="665"  y2="388" marker-end="url(#arr)"/>
+  <line class="stub" x1="1025" y1="344" x2="1025" y2="388" marker-end="url(#arr)"/>
+  <line class="stub" x1="1295" y1="344" x2="1295" y2="388" marker-end="url(#arr)"/>
+
+  <!-- bridge main -> peri -->
+  <line x1="1175" y1="344" x2="1175" y2="638" stroke="#2e4057" stroke-width="10" opacity="0.85" marker-end="url(#arr)"/>
+  <text x="1163" y="500" font-size="10.5" font-weight="bold" fill="#2e4057" transform="rotate(-90 1163 500)" text-anchor="middle">TL-UL bridge &#8594; clk_io_div4</text>
+
+  <!-- ===================== row B: memories ===================== -->
+  <rect x="70" y="390" width="360" height="170" rx="8" fill="#eef7ef" stroke="#9aa7b8" stroke-width="1"/>
+  <text class="grptitle" x="82" y="408">MEMORIES</text>
+  <!-- ROM -->
+  <rect class="blk" x="82" y="428" width="105" height="66" rx="5"/>
+  <text class="blkname" x="134" y="445">ROM</text>
+  <text class="blksub"  x="134" y="458">rom_ctrl</text>
+  <text class="blksub2" x="134" y="470">32 KB scrambled</text>
+  <text class="blksub2" x="134" y="482">TEST ROM boots</text>
+  <circle cx="84" cy="430" r="9" fill="#2e4057"/><text x="84" y="434" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">1</text>
+  <!-- Flash -->
+  <rect class="blk" x="193" y="428" width="105" height="66" rx="5"/>
+  <text class="blkname" x="245" y="445">eFlash</text>
+  <text class="blksub"  x="245" y="458">flash_ctrl</text>
+  <text class="blksub2" x="245" y="470">1 MB &#183; 2 banks</text>
+  <text class="blksub2" x="245" y="482">slot A: SW test</text>
+  <circle cx="195" cy="430" r="9" fill="#2e4057"/><text x="195" y="434" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">2</text>
+  <!-- main SRAM -->
+  <rect class="blk" x="304" y="428" width="105" height="66" rx="5"/>
+  <text class="blkname" x="356" y="445">Main SRAM</text>
+  <text class="blksub"  x="356" y="458">sram_ctrl_main</text>
+  <text class="blksub2" x="356" y="470">128 KB scrambled</text>
+  <text class="blksub2" x="356" y="482">status word lives here</text>
+  <circle cx="306" cy="430" r="9" fill="#2e4057"/><text x="306" y="434" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">3</text>
+  <circle cx="405" cy="432" r="8" fill="#1a7f37"/><text x="405" y="436" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">&#10003;</text>
+
+  <!-- ===================== row B: crypto ===================== -->
+  <rect x="450" y="390" width="430" height="170" rx="8" fill="#efeaf7" stroke="#9aa7b8" stroke-width="1"/>
+  <text class="grptitle" x="462" y="408">CRYPTO &amp; KEYS</text>
+  <rect class="blk" x="466" y="424" width="120" height="56" rx="5"/>
+  <text class="blkname" x="526" y="446">AES</text>
+  <text class="blksub"  x="526" y="461">128 / 192 / 256</text>
+  <rect class="blk" x="603" y="424" width="120" height="56" rx="5"/>
+  <text class="blkname" x="663" y="446">HMAC</text>
+  <text class="blksub"  x="663" y="461">SHA-256</text>
+  <rect class="blk" x="740" y="424" width="120" height="56" rx="5"/>
+  <text class="blkname" x="800" y="446">KMAC</text>
+  <text class="blksub"  x="800" y="461">SHA-3 / cSHAKE</text>
+  <rect class="blk" x="520" y="492" width="150" height="56" rx="5"/>
+  <text class="blkname" x="595" y="514">OTBN</text>
+  <text class="blksub"  x="595" y="529">big-number accel (RSA/ECC)</text>
+  <rect class="blk" x="700" y="492" width="150" height="56" rx="5"/>
+  <text class="blkname" x="775" y="514">keymgr</text>
+  <text class="blksub"  x="775" y="529">boot-stage key derivation</text>
+
+  <!-- ===================== row B: entropy complex ===================== -->
+  <rect x="900" y="390" width="250" height="170" rx="8" fill="#fff4e0" stroke="#9aa7b8" stroke-width="1"/>
+  <text class="grptitle" x="912" y="408">ENTROPY COMPLEX</text>
+  <rect class="blk" x="915" y="418" width="220" height="36" rx="5"/>
+  <text class="blkname" x="1025" y="433">entropy_src</text>
+  <text class="blksub"  x="1025" y="447">TRNG noise + health tests</text>
+  <line x1="1025" y1="454" x2="1025" y2="462" stroke="#3d4a5f" stroke-width="1.4" marker-end="url(#arr)"/>
+  <rect class="blk" x="915" y="464" width="220" height="36" rx="5"/>
+  <text class="blkname" x="1025" y="479">csrng</text>
+  <text class="blksub"  x="1025" y="493">AES-CTR DRBG</text>
+  <line x1="967"  y1="500" x2="967"  y2="508" stroke="#3d4a5f" stroke-width="1.4" marker-end="url(#arr)"/>
+  <line x1="1082" y1="500" x2="1082" y2="508" stroke="#3d4a5f" stroke-width="1.4" marker-end="url(#arr)"/>
+  <rect class="blk" x="915" y="510" width="105" height="36" rx="5"/>
+  <text class="blkname" x="967" y="532">edn0</text>
+  <rect class="blk" x="1030" y="510" width="105" height="36" rx="5"/>
+  <text class="blkname" x="1082" y="532">edn1</text>
+  <text class="blksub2" x="1025" y="556">&#8594; feeds AES &#183; KMAC &#183; OTBN &#183; keymgr &#183; Ibex</text>
+  <line x1="898" y1="470" x2="884" y2="470" stroke="#c07f10" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#arrA)"/>
+
+  <!-- ===================== row B: high-speed IO on main ===================== -->
+  <rect x="1200" y="390" width="190" height="170" rx="8" fill="#e9f2f9" stroke="#9aa7b8" stroke-width="1"/>
+  <text class="grptitle" x="1212" y="408">HIGH-SPEED IO</text>
+  <rect class="blk" x="1214" y="418" width="162" height="40" rx="5"/>
+  <text class="blkname" x="1295" y="434">spi_host0</text>
+  <text class="blksub"  x="1295" y="448">ext. SPI flash host</text>
+  <rect class="blk" x="1214" y="464" width="162" height="40" rx="5"/>
+  <text class="blkname" x="1295" y="480">spi_host1</text>
+  <text class="blksub"  x="1295" y="494">generic SPI host</text>
+  <rect class="blk" x="1214" y="510" width="162" height="40" rx="5"/>
+  <text class="blkname" x="1295" y="526">usbdev</text>
+  <text class="blksub"  x="1295" y="540">USB 2.0 FS device</text>
+
+  <!-- ===================== xbar_peri ===================== -->
+  <rect x="70" y="640" width="1320" height="44" rx="6" fill="#2e4057"/>
+  <text class="bartxt" x="730" y="667">xbar_peri &#8212; TL-UL crossbar &#183; host: xbar_main &#183; 27 device ports &#183; clk_io_div4 / clk_aon</text>
+
+  <!-- stubs from peri bar to row-C groups -->
+  <line class="stub" x1="330"  y1="684" x2="330"  y2="728" marker-end="url(#arr)"/>
+  <line class="stub" x1="775"  y1="684" x2="775"  y2="728" marker-end="url(#arr)"/>
+  <line class="stub" x1="1175" y1="684" x2="1175" y2="728" marker-end="url(#arr)"/>
+
+  <!-- ===================== row C: peripherals ===================== -->
+  <rect x="70" y="730" width="520" height="200" rx="8" fill="#e9f2f9" stroke="#9aa7b8" stroke-width="1"/>
+  <text class="grptitle" x="82" y="748">PERIPHERALS</text>
+  <!-- row 1 -->
+  <rect class="blk" x="84" y="760" width="92" height="58" rx="5"/>
+  <text class="blkname" x="130" y="783">uart0</text>
+  <text class="blksub"  x="130" y="798">console UART</text>
+  <circle cx="176" cy="762" r="8" fill="#1a7f37"/><text x="176" y="766" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">&#10003;</text>
+  <rect class="blk" x="182" y="760" width="92" height="58" rx="5"/>
+  <text class="blkname" x="228" y="783">uart1</text>
+  <rect class="blk" x="280" y="760" width="92" height="58" rx="5"/>
+  <text class="blkname" x="326" y="783">uart2</text>
+  <rect class="blk" x="378" y="760" width="92" height="58" rx="5"/>
+  <text class="blkname" x="424" y="783">uart3</text>
+  <rect class="blk" x="476" y="760" width="92" height="58" rx="5"/>
+  <text class="blkname" x="522" y="783">gpio</text>
+  <text class="blksub"  x="522" y="798">32 pins</text>
+  <circle cx="568" cy="762" r="8" fill="#1a7f37"/><text x="568" y="766" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">&#10003;</text>
+  <!-- row 2 -->
+  <rect class="blk" x="84" y="850" width="76" height="58" rx="5"/>
+  <text class="blkname" x="122" y="873">i2c0</text>
+  <rect class="blk" x="165" y="850" width="76" height="58" rx="5"/>
+  <text class="blkname" x="203" y="873">i2c1</text>
+  <rect class="blk" x="246" y="850" width="76" height="58" rx="5"/>
+  <text class="blkname" x="284" y="873">i2c2</text>
+  <rect class="blk" x="327" y="850" width="76" height="58" rx="5"/>
+  <text class="blkname" x="365" y="873">spi_device</text>
+  <text class="blksub2" x="365" y="888">device-mode SPI</text>
+  <rect class="blk" x="408" y="850" width="76" height="58" rx="5"/>
+  <text class="blkname" x="446" y="873">pattgen</text>
+  <rect class="blk" x="489" y="850" width="76" height="58" rx="5"/>
+  <text class="blkname" x="527" y="873">rv_timer</text>
+  <text class="blksub2" x="527" y="888">mtime IRQ</text>
+  <circle cx="565" cy="852" r="8" fill="#1a7f37"/><text x="565" y="856" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">&#10003;</text>
+
+  <!-- ===================== row C: security & lifecycle ===================== -->
+  <rect x="610" y="730" width="330" height="200" rx="8" fill="#fdeeee" stroke="#9aa7b8" stroke-width="1"/>
+  <text class="grptitle" x="622" y="748">SECURITY &amp; LIFECYCLE</text>
+  <rect class="blk" x="625" y="760" width="145" height="58" rx="5"/>
+  <text class="blkname" x="697" y="780">OTP</text>
+  <text class="blksub"  x="697" y="794">otp_ctrl + otp_macro</text>
+  <text class="blksub2" x="697" y="807">fuses &#183; keys &#183; LC state</text>
+  <rect class="blk" x="783" y="760" width="145" height="58" rx="5"/>
+  <text class="blkname" x="855" y="780">lc_ctrl</text>
+  <text class="blksub"  x="855" y="794">lifecycle controller</text>
+  <text class="blksub2" x="855" y="807">RAW&#8594;TEST&#8594;DEV&#8594;PROD</text>
+  <rect class="blk" x="625" y="850" width="145" height="58" rx="5"/>
+  <text class="blkname" x="697" y="870">sensor_ctrl</text>
+  <text class="blksub"  x="697" y="884">AST alert relay</text>
+  <rect class="blk" x="783" y="850" width="145" height="58" rx="5"/>
+  <text class="blkname" x="855" y="870">alert_handler</text>
+  <text class="blksub"  x="855" y="884">alerts from every IP</text>
+  <text class="blksub2" x="855" y="897">escalates &#8594; reset</text>
+  <line x1="930" y1="872" x2="958" y2="845" stroke="#cc3344" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#arrR)"/>
+
+  <!-- ===================== row C: AON domain ===================== -->
+  <rect x="960" y="730" width="430" height="200" rx="8" fill="#fdf6ec" stroke="#d9a441" stroke-width="1.5"/>
+  <text class="grptitle" x="972" y="748">ALWAYS-ON DOMAIN (clk_aon 200 kHz)</text>
+  <!-- row 1 -->
+  <rect class="blk" x="975" y="760" width="74" height="58" rx="5"/>
+  <text class="blkname" x="1012" y="782">pwrmgr</text>
+  <text class="blksub2" x="1012" y="796">power seq</text>
+  <rect class="blk" x="1057" y="760" width="74" height="58" rx="5"/>
+  <text class="blkname" x="1094" y="782">rstmgr</text>
+  <text class="blksub2" x="1094" y="796">resets</text>
+  <rect class="blk" x="1139" y="760" width="74" height="58" rx="5"/>
+  <text class="blkname" x="1176" y="782">clkmgr</text>
+  <text class="blksub2" x="1176" y="796">clocks</text>
+  <rect class="blk" x="1221" y="760" width="74" height="58" rx="5"/>
+  <text class="blkname" x="1258" y="782">pinmux</text>
+  <text class="blksub2" x="1258" y="796">pads &#183; wkup</text>
+  <rect class="blk" x="1303" y="760" width="74" height="58" rx="5"/>
+  <text class="blkname" x="1340" y="782">ast</text>
+  <text class="blksub2" x="1340" y="796">analog</text>
+  <!-- row 2 -->
+  <rect class="blk" x="975" y="850" width="76" height="58" rx="5"/>
+  <text class="blkname" x="1013" y="870">aon_timer</text>
+  <text class="blksub2" x="1013" y="884">wkup + wdog</text>
+  <circle cx="1051" cy="852" r="8" fill="#1a7f37"/><text x="1051" y="856" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">&#10003;</text>
+  <rect class="blk" x="1057" y="850" width="76" height="58" rx="5"/>
+  <text class="blkname" x="1095" y="870">sysrst_ctrl</text>
+  <text class="blksub2" x="1095" y="884">combo keys</text>
+  <rect class="blk" x="1139" y="850" width="76" height="58" rx="5"/>
+  <text class="blkname" x="1177" y="870">adc_ctrl</text>
+  <text class="blksub2" x="1177" y="884">debug cable</text>
+  <rect class="blk" x="1221" y="850" width="76" height="58" rx="5"/>
+  <text class="blkname" x="1259" y="870">pwm</text>
+  <text class="blksub2" x="1259" y="884">6 channels</text>
+  <rect class="blk" x="1303" y="850" width="76" height="58" rx="5"/>
+  <text class="blkname" x="1341" y="870">SRAM ret</text>
+  <text class="blksub2" x="1341" y="884">4 KB retained</text>
+  <circle cx="1379" cy="852" r="8" fill="#1a7f37"/><text x="1379" y="856" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">&#10003;</text>
+
+  <!-- ===================== padring ===================== -->
+  <rect x="70" y="950" width="1320" height="48" rx="6" fill="#dfe6ee" stroke="#8a97a8" stroke-width="1.2"/>
+  <text x="86" y="970" font-size="12" font-weight="bold" fill="#3a4454">padring &#8212; MIO &#215;47 (muxed via pinmux_aon) &#183; DIO &#215;16 (dedicated)</text>
+  <text x="86" y="988" font-size="10" fill="#5a6577">UART TX/RX &#183; GPIO[31:0] &#183; I&#178;C SCL/SDA &#183; SPI host/device &#183; USB D&#177; &#183; JTAG (tap strap) &#183; AST analog &#183; straps</text>
+
+  <!-- ===================== DV taps (outside chip, inside TB) ===================== -->
+  <rect x="70" y="1030" width="300" height="52" rx="6" fill="none" stroke="#7a869a" stroke-width="1.2" stroke-dasharray="5 4"/>
+  <text x="220" y="1050" text-anchor="middle" font-size="11" font-weight="bold" fill="#5a6577">sw_test_status_if</text>
+  <text x="220" y="1066" text-anchor="middle" font-size="9" fill="#7a869a">bound into main SRAM &#8212; watches 0x411f0080 &#8594; PASS/FAIL</text>
+
+  <rect x="390" y="1030" width="220" height="52" rx="6" fill="none" stroke="#7a869a" stroke-width="1.2" stroke-dasharray="5 4"/>
+  <text x="500" y="1050" text-anchor="middle" font-size="11" font-weight="bold" fill="#5a6577">uart_agent</text>
+  <text x="500" y="1066" text-anchor="middle" font-size="9" fill="#7a869a">drives / checks UART pins</text>
+  <line x1="500" y1="1030" x2="500" y2="1000" stroke="#7a869a" stroke-width="1.2" stroke-dasharray="5 4"/>
+
+  <rect x="630" y="1030" width="220" height="52" rx="6" fill="none" stroke="#7a869a" stroke-width="1.2" stroke-dasharray="5 4"/>
+  <text x="740" y="1050" text-anchor="middle" font-size="11" font-weight="bold" fill="#5a6577">gpio pin monitor</text>
+  <text x="740" y="1066" text-anchor="middle" font-size="9" fill="#7a869a">checks walked patterns</text>
+  <line x1="740" y1="1030" x2="740" y2="1000" stroke="#7a869a" stroke-width="1.2" stroke-dasharray="5 4"/>
+
+  <rect x="870" y="1030" width="200" height="52" rx="6" fill="none" stroke="#7a869a" stroke-width="1.2" stroke-dasharray="5 4"/>
+  <text x="970" y="1050" text-anchor="middle" font-size="11" font-weight="bold" fill="#5a6577">jtag_agent</text>
+  <text x="970" y="1066" text-anchor="middle" font-size="9" fill="#7a869a">rv_dm debug access</text>
+  <line x1="970" y1="1030" x2="970" y2="1000" stroke="#7a869a" stroke-width="1.2" stroke-dasharray="5 4"/>
+
+  <rect x="1090" y="1030" width="300" height="52" rx="6" fill="none" stroke="#7a869a" stroke-width="1.2" stroke-dasharray="5 4"/>
+  <text x="1240" y="1050" text-anchor="middle" font-size="11" font-weight="bold" fill="#5a6577">backdoor ELF loaders</text>
+  <text x="1240" y="1066" text-anchor="middle" font-size="9" fill="#7a869a">ROM / flash / SRAM images loaded via DPI (fast boot)</text>
+</svg>

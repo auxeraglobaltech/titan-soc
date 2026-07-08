@@ -100,4 +100,7 @@ titan-soc/
 | C test style | Thin bare-metal, `tohost` convention, no DIFs |
 | Boot strategy | OpenTitan TEST ROM (no hand-written startup) |
 
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full rationale.
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full rationale, and
+[`docs/earlgrey_block_diagram.svg`](docs/earlgrey_block_diagram.svg) for the
+annotated Earl Grey block diagram (bus topology from the pinned commit's
+`xbar_{main,peri}.hjson`; smoke-verified IPs marked ✓).
