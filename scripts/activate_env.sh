@@ -62,38 +62,9 @@ if [[ ! -e /usr/include/openssl/conf.h && -e "${_OSSL_INC}/openssl/conf.h" ]]; t
     export LD_LIBRARY_PATH="${HOME}/.local/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 fi
 
-# --- Bazel site config: OT's .bazelrc has `try-import .bazelrc-site` and the
-# file is upstream-gitignored — the sanctioned per-host escape hatch (NOT a
-# vendor edit). openssl-sys's build script gets PKG_CONFIG_PATH through OT's
-# own string_flag //third_party/rust:openssl_pkg_config_path (make variable
-# OPENSSL_PKG_CONFIG_PATH, default empty) — point it at the pkg-config shims
-# (openssl.pc, libudev.pc, ...) prepared in ~/.local/lib/pkgconfig, which
-# reference /usr/lib64 runtime libs + the IC251 OpenSSL 3 headers.
-# pkg-config shims + dev symlinks + libftdi1 stub: scripts/setup_host_shims.sh
-_TITAN_PKGCFG="${HOME}/.local/lib64/pkgconfig"
-_TITAN_BAZELRC_SITE="${REPO_TOP}/.bazelrc-site"
-if [[ -d "${_TITAN_PKGCFG}" ]]; then
-    {
-        printf 'build --//third_party/rust:openssl_pkg_config_path=%s\n' "${_TITAN_PKGCFG}"
-        printf 'build --action_env=PKG_CONFIG_PATH=%s\n' "${_TITAN_PKGCFG}"
-        # srec_cat (repo shim) must be reachable inside Bazel's sandbox:
-        # --incompatible_strict_action_env pins PATH to system defaults, so
-        # non-hermetic host tools like srec_cat need an explicit PATH override.
-        printf 'build --action_env=PATH=%s:%s:/usr/local/bin:/usr/bin:/bin\n' \
-            "${_TITAN_REPO}/scripts" "${HOME}/.local/bin"
-        # ~/.local/lib64 on every link line: carries the dev symlinks
-        # (libssl/libcrypto/libudev) and the STATIC libftdi1.a stub — static
-        # so opentitantool has no ftdi NEEDED entry (sandbox actions run
-        # `env -`, no LD_LIBRARY_PATH possible). Also forces the relink.
-        printf 'build --linkopt=-L%s\n' "${HOME}/.local/lib64"
-    } > "${_TITAN_BAZELRC_SITE}.tmp"
-    if ! cmp -s "${_TITAN_BAZELRC_SITE}.tmp" "${_TITAN_BAZELRC_SITE}" 2>/dev/null; then
-        mv "${_TITAN_BAZELRC_SITE}.tmp" "${_TITAN_BAZELRC_SITE}"
-        echo "  (generated ${_TITAN_BAZELRC_SITE})"
-    else
-        rm -f "${_TITAN_BAZELRC_SITE}.tmp"
-    fi
-fi
+# --- Bazel site config (vendor/opentitan/.bazelrc-site): shared generator so
+# the csh flavor (activate_env.csh) produces the identical file.
+"${_TITAN_REPO}/scripts/gen_bazelrc_site.sh" "${_TITAN_REPO}"
 
 echo "titan-soc environment active:"
 echo "  python : $(python --version 2>&1)  ($(command -v python))"
