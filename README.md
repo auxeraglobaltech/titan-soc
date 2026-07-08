@@ -25,22 +25,34 @@ re-implemented** here. Trainees extend it. This is **Option B** — see
 
 ---
 
-## Quick-start (Phase 1+)
+## Quick-start
 
-> Phase 0 only sets up the skeleton. Simulation commands will be added in Phase 1
-> once the OpenTitan submodule is populated.
-
-```bash
-# 1. Clone with submodules (Phase 1+)
-git clone --recurse-submodules https://github.com/auxeraglobaltech/titan-soc.git
+```csh
+# 1. Clone with submodules
+git clone --recurse-submodules git@github.com:auxeraglobaltech/titan-soc.git
 cd titan-soc
 
-# 2. Elaborate (human runs this — automation must not invoke xrun directly)
-#    TODO: add command after Phase 1
+# 2. One-time host setup (dev-symlink/pkg-config/libftdi shims, no sudo needed)
+./scripts/setup_host_shims.sh
 
-# 3. Run a test
-#    TODO: add command after Phase 1
+# 3. Activate the environment (venv + Cadence tools + Bazel site config)
+source scripts/activate_env.csh     # csh/tcsh users
+source scripts/activate_env.sh      # bash users
+
+# 4. Run a chip-level test (default: chip_sw_gpio_smoketest)
+./sim/run_xcelium.sh
+env TEST=chip_sw_uart_smoketest ./sim/run_xcelium.sh   # pick another test
+./sim/run_xcelium.sh --waves shm                       # with SHM waves
+./sim/run_xcelium.sh --build-only                      # elaborate only
+
+# 5. Results — never dig inside vendor/:
+less sim/runs/latest/run.log            # main UVM log of the newest run
+simvision sim/runs/latest/waves.shm &   # waves (if dumped)
 ```
+
+Both `chip_sw_gpio_smoketest` and `chip_sw_uart_smoketest` pass 1/1 on
+Xcelium. Bring-up history and every host quirk fixed along the way:
+[`docs/XCELIUM_NOTES.md`](docs/XCELIUM_NOTES.md).
 
 ---
 
@@ -63,12 +75,13 @@ titan-soc/
 
 ## Phase plan
 
-| Phase | Goal |
-|-------|------|
-| **0** | Repo skeleton, architecture decisions recorded ← *you are here* |
-| **1** | OpenTitan submodule pinned; elaboration with Xcelium verified |
-| **2** | First trainee tests running; test plan populated |
-| **3** | Coverage closure, regression suite, training exercises |
+| Phase | Goal | Status |
+|-------|------|--------|
+| **0** | Repo skeleton, architecture decisions recorded | ✅ done |
+| **1** | OpenTitan submodule pinned; elaboration with Xcelium verified | ✅ done |
+| **2** | Build prerequisites, toolchain, Python env | ✅ done |
+| **3** | First chip tests passing on Xcelium (gpio + uart smoke, 1/1) | ✅ done |
+| **4** | Trainee tests & testplan; coverage; regression suite | ← *next* |
 
 ---
 
