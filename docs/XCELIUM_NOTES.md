@@ -139,7 +139,26 @@ Fixes go via **tool options** or **minimal, clearly-commented shims under
 | 0 | (SW build) cold Bazel build downloads hermetic toolchain | first run only | none — expected; cached after first build | OK |
 | 1 | SW build: `execvp(srec_cat,...): No such file or directory`; `srec_cat failed (Exit 1)`; "Build did NOT complete successfully"; run dir empty | OpenTitan Bazel rules call host `srec_cat` (from `srecord`, line 44 of `apt-requirements.txt`) as a **non-hermetic system tool** to convert `.bin`→`.vmem`. `srecord` is not installed on this host; no-sudo source build also blocked (boost + libgcrypt headers missing). | **RESOLVED** — pure-Python `srec_cat` shim implementing exactly the subset OT's `transform.bzl` invokes (`--binary --offset --byte-swap --fill/-within --vmem`). Committed at `scripts/srec_cat`; `activate_env.sh` prepends `scripts/` to PATH. SW collateral rebuilt successfully and deployed to `sim/runs/chip_sw_gpio_smoketest/` (`test_rom_sim_dv.*`, `gpio_smoketest_sim_dv.*`). | FIXED |
 | 2 | (build tooling) missing `libtinfo.so.5` on RHEL9 during opentitantool/Bazel host-tool builds | RHEL9 ships `libtinfo.so.6` only | symlinked Xcelium's bundled copy: `ln -sf $XCELIUM/tools.lnx86/lib/64bit/RHEL/RHEL9/libtinfo.so.5 ~/.local/lib64/libtinfo.so.5` (machine-local; documented here for reproducibility) | FIXED |
-| — | _(first Xcelium elaboration not yet attempted; rows added per round)_ | | | |
+| 3 | dvsim crashes writing reports: `UnicodeEncodeError: 'latin-1' codec can't encode character '—'` | `~/cshrc` sets `LANG=en_US` (no UTF-8), so Python's default file encoding is latin-1 | run with `LANG=en_US.UTF-8` (fixed in the bash Cadence env snapshot `~/.cadence_env.bash`) | FIXED |
+| 4 | FuseSoC: `Parse error. Ignoring file .../adapter_dmi.core` (`files_verilator_waiver.files must contain at least 1 items`) → `Failed to resolve dependencies ... lowrisc_tlul_adapter_dmi` | stray user-level `~/.local/bin/fusesoc` **2.4.6** shadowed the venv's OT-pinned **2.4.5** (activate_env.sh prepended `~/.local/bin` *after* venv activation); 2.4.6 rejects `files: []` | reordered `activate_env.sh` so the venv bin stays first on PATH | FIXED |
+| 5 | xrun DPI C build: `crypto.c:7:10: fatal error: openssl/conf.h: No such file or directory` → `xrun: *E,CCERR` | AES DPI model (`hw/ip/aes/model/crypto.c`) needs OpenSSL dev headers; host has no `openssl-devel`, no sudo | export `CPATH` → OpenSSL 3.0.14 headers bundled in IC251's python prefix, `LIBRARY_PATH` → `~/.local/lib64` dev symlinks to system `libcrypto.so.3` (guarded block in `activate_env.sh`; verified by compile+link+run test) | FIXED |
+| 6 | (sw_build) openssl-sys build script: "Could not find openssl via pkg-config", `PKG_CONFIG_PATH contains: -` (empty) even with `--action_env=PKG_CONFIG_PATH` | rules_rust `cargo_build_script` builds its env explicitly and ignores `--action_env`; OT wired a make variable for this instead | `.bazelrc-site`: `build --//third_party/rust:openssl_pkg_config_path=<pkgconfig dir>` (OT's own `string_flag`, `third_party/rust/BUILD:19`) | FIXED |
+| 7 | (sw_build) `execvp(srec_cat): No such file or directory` inside the Bazel sandbox despite the shim being on the shell PATH | `--incompatible_strict_action_env` pins action PATH to system defaults | `.bazelrc-site`: `build --action_env=PATH=<repo>/scripts:~/.local/bin:/usr/local/bin:/usr/bin:/bin` (costs one action-cache invalidation) | FIXED |
+| 8 | opentitantool link: `/usr/bin/ld: cannot find -lssl / -lcrypto / -lftdi1 / -ludev` | host has runtime `.so.N` libs but no `*-devel` dev symlinks; libftdi is absent entirely | `scripts/setup_host_shims.sh`: dev symlinks in `~/.local/lib64`, pkg-config shims in `~/.local/lib64/pkgconfig` (libdir points there), plus `build --linkopt=-L~/.local/lib64` | FIXED |
+| 9 | modid_check: `opentitantool: error while loading shared libraries: libftdi1.so` — action runs with `env -`, so no LD_LIBRARY_PATH can reach it | first stub attempt was a shared lib → NEEDED entry unresolvable in sandbox | **static** stub `libftdi1.a` (from `scripts/libftdi1_stub.c`, aborts loudly if ever called); ld falls back to `.a` when no `.so` exists → no runtime dependency at all | FIXED |
+| — | _(rows added per bring-up round)_ | | | |
+
+## Bring-up log
+
+- **2026-07-07**: First-ever Xcelium build of the chip DV env **PASSED** after
+  fixes #3–#5: full compile + elaboration in **1m24s**, snapshot
+  `worklib.tb:sv` (746 MB `xcelium.d`). Only benign warnings (BNDWRN in
+  `cip_tl_seq_item.sv`, XPROP notes). Next: first full simulation run.
+- **2026-07-08**: `chip_sw_gpio_smoketest` **PASSED 1/1 (100%)** on Xcelium
+  after fixes #6–#9. TEST ROM boot `SwTestStatusInBootRom` @2560µs →
+  `SwTestStatusInTest` @2931µs → `SW TEST PASSED` @3322µs; 3340.6µs simulated,
+  164s wall, UVM_ERROR 0. The full dvsim → FuseSoC → Bazel → xrun flow is
+  operational end to end. `sw_build.log` staleness note below is now moot.
 
 ---
 
