@@ -1,0 +1,27 @@
+// titan-soc trainee simulation config.
+//
+// Imports the vendor chip sim cfg UNTOUCHED and layers trainee test entries
+// on top — the sanctioned dvsim way to register new tests without editing
+// anything under vendor/. Used by sim/run_xcelium.sh.
+//
+// Trainee SW test sources live in titan-soc/sw/trainee/ (committed) and are
+// synced into vendor/opentitan/sw/device/tests/titan/ (untracked bazel
+// package) by scripts/sync_trainee_sw.sh — see docs/TRAINEE_GUIDE.md.
+{
+  // Everything from upstream: chip env, build modes, all chip_sw_* tests.
+  import_cfgs: ["{proj_root}/hw/top_earlgrey/dv/chip_sim_cfg.hjson"]
+
+  // ---------------------------------------------------------------------
+  // Trainee tests — add entries below. Minimal C-test entry:
+  //
+  // tests: [
+  //   {
+  //     name: titan_sw_hello_test
+  //     uvm_test_seq: chip_sw_base_vseq
+  //     sw_images: ["//sw/device/lib/testing/test_rom:test_rom:0",
+  //                 "//sw/device/tests/titan:hello_test:1:new_rules"]
+  //     run_timeout_mins: 60
+  //   }
+  // ]
+  // ---------------------------------------------------------------------
+}

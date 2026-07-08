@@ -35,6 +35,13 @@ SIM_CFG="${OT}/hw/top_earlgrey/dv/chip_sim_cfg.hjson"
 # Test selection:  TEST=chip_sw_uart_smoketest ./sim/run_xcelium.sh
 TEST_NAME="${TEST:-chip_sw_gpio_smoketest}"
 
+# Coverage:  COV=1 ./sim/run_xcelium.sh  (functional+code cov; slower, big DBs;
+# merged report lands under sim/scratch/.../cov_report — open with imc)
+COV_ARGS=()
+if [[ "${COV:-0}" == "1" ]]; then
+    COV_ARGS=(--cov)
+fi
+
 # All dvsim output (build + run logs, waves) goes under sim/scratch/ in THIS
 # repo — nobody has to dig inside vendor/. sim/runs/latest always points at
 # the newest run dir of the last executed test.
@@ -70,6 +77,7 @@ dvsim "${SIM_CFG}" \
     --local \
     --fixed-seed 1 \
     --scratch-root "${SCRATCH}" \
+    ${COV_ARGS[@]+"${COV_ARGS[@]}"} \
     "$@" || rc=$?
 set +x
 
