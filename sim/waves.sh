@@ -44,4 +44,11 @@ echo "simvision: ${SIMVISION}"
 echo "waves    : ${WAVES}"
 echo "cdslib   : ${CDS}"
 echo "snapshot : ${SNAPSHOT}"
-exec "${SIMVISION}" -64bit -cdslib "${CDS}" -snapshot "${SNAPSHOT}" "${WAVES}" &
+
+# Detach properly (exec+& is unreliable); keep a log for diagnosis.
+LOG="$(dirname "${WAVES}")/simvision.log"
+nohup "${SIMVISION}" -64bit -cdslib "${CDS}" -snapshot "${SNAPSHOT}" "${WAVES}" \
+    > "${LOG}" 2>&1 &
+disown
+echo "launched pid $! — log: ${LOG}"
+echo "(big snapshot: the main window can take ~15-30s to appear)"
