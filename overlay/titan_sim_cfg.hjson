@@ -11,6 +11,12 @@
   // Everything from upstream: chip env, build modes, all chip_sw_* tests.
   import_cfgs: ["{proj_root}/hw/top_earlgrey/dv/chip_sim_cfg.hjson"]
 
+  // This cfg lives OUTSIDE proj_root (vendor/opentitan), so dvsim cannot
+  // derive rel_path from it (flow/base.py does relative_to(proj_root) and
+  // would raise). Pin it to the vendor cfg's own location — only used for
+  // report/testplan paths.
+  rel_path: "hw/top_earlgrey/dv"
+
   // ---------------------------------------------------------------------
   // Trainee tests — one entry per test. Pattern for a minimal C test:
   //   new .c + opentitan_test() in sw/trainee/BUILD + one entry here,

@@ -31,7 +31,9 @@ set -euo pipefail
 # --- Resolve paths ------------------------------------------------------------
 REPO_TOP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OT="${REPO_TOP}/vendor/opentitan"
-SIM_CFG="${OT}/hw/top_earlgrey/dv/chip_sim_cfg.hjson"
+# Our overlay cfg = vendor chip_sim_cfg imported wholesale + trainee tests
+# (titan_sw_*). proj_root stays vendor/opentitan (passed explicitly below).
+SIM_CFG="${REPO_TOP}/overlay/titan_sim_cfg.hjson"
 # Test selection:  TEST=chip_sw_uart_smoketest ./sim/run_xcelium.sh
 TEST_NAME="${TEST:-chip_sw_gpio_smoketest}"
 
@@ -73,6 +75,7 @@ set -x
 rc=0
 dvsim "${SIM_CFG}" \
     -i "${TEST_NAME}" \
+    --proj-root "${OT}" \
     --tool xcelium \
     --local \
     --fixed-seed 1 \
