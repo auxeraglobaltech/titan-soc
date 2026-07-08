@@ -3,24 +3,35 @@
 First trainee-authored UVM sequences. The C-test track (`sw/trainee/`,
 Exercise 1) comes first; this vseq track is Exercise 2+.
 
-## Compile mechanism — status: DRAFTED, NOT YET VALIDATED
+## Compile mechanism — package re-open technique
 
-The intent (no vendor edits, same philosophy as the SW overlay):
+All upstream vseqs are `\`include`d inside `chip_env_pkg` (see
+`chip_env_pkg.sv` → `chip_vseq_list.sv`). A standalone compile unit
+cannot extend package-scoped types, so a simple `build_opts` file append
+would fail at elaboration.
 
-1. A trainee vseq file here extends `chip_sw_base_vseq` — see
-   `titan_hello_vseq.sv`.
-2. `overlay/titan_sim_cfg.hjson` adds it as an extra compile unit via
-   `build_opts` (an `-f`/`+incdir` addition pointing at this directory),
-   compiled into the same `chip_env_pkg` scope after the vendor seq_lib.
-3. The test entry sets `uvm_test_seq: titan_hello_vseq` — the upstream
-   `chip_base_test` `+UVM_TEST_SEQ` plumbing picks it up by name; no new
-   UVM test class is needed.
+**Solution: SystemVerilog package re-open** (IEEE 1800-2017 §26.2).
+A second `package chip_env_pkg; ... endpackage` block appends new
+identifiers to the already-compiled package namespace, giving the new
+classes full visibility of `chip_sw_base_vseq`, `cfg`, `DV_WAIT`, etc.
 
-**Validation TODO (first cohort / operator):** confirm step 2's exact
-`build_opts` incantation elaborates on Xcelium — the vseq must see
-`chip_env_pkg` internals (macros, `cfg`), which may require a
-`` `include``-into-package approach rather than a standalone compile unit.
-Record the working recipe here and in `docs/XCELIUM_NOTES.md` when proven.
+The file `overlay/titan_vseq_extras.sv` re-opens the package and
+`\`include`s each trainee vseq. Two `build_opts` in `titan_sim_cfg.hjson`
+wire this in without touching any vendor file:
+
+```
+build_opts: [
+  "+incdir+{self_dir}/../tests/smoke"
+  "{self_dir}/titan_vseq_extras.sv"
+]
+```
+
+`{self_dir}` resolves to the `overlay/` directory — a dvsim built-in.
+
+**Operator validation required**: run `titan_sw_hello_test` after this
+change is committed. If elaboration succeeds and `titan_hello_vseq` is
+factory-registered at sim start, the mechanism is confirmed. Record the
+result in `docs/XCELIUM_NOTES.md`.
 
 ## Files
 

@@ -81,11 +81,8 @@ titan-soc/
 | **1** | OpenTitan submodule pinned; elaboration with Xcelium verified | ✅ done |
 | **2** | Build prerequisites, toolchain, Python env | ✅ done |
 | **3** | First chip tests passing on Xcelium (gpio + uart smoke, 1/1) | ✅ done |
-| **4** | Trainee tests & testplan; coverage; regression suite (5-test smoke green) | ✅ done* |
+| **4** | Trainee tests & testplan; coverage; regression suite (5-test smoke green) | ✅ done |
 | **5** | Trainee vseq compile path validated; first cohort exercises; coverage closure | ← *next* |
-
-\* pending one operator run: `env TEST=titan_sw_hello_test ./sim/run_xcelium.sh`
-(after `./scripts/sync_trainee_sw.sh`) to confirm the trainee workflow end-to-end.
 
 ---
 

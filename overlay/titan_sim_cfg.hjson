@@ -17,6 +17,24 @@
   // report/testplan paths.
   rel_path: "hw/top_earlgrey/dv"
 
+  // -----------------------------------------------------------------------
+  // Trainee vseq compile extension (package re-open technique).
+  //
+  // All upstream vseqs live inside chip_env_pkg (included via
+  // chip_vseq_list.sv). To add trainee vseqs without editing vendor/ we
+  // re-open the package in overlay/titan_vseq_extras.sv.  Two build_opts
+  // are required:
+  //   1. +incdir+ pointing at tests/smoke/ so the `include inside the
+  //      re-opened package can find titan_hello_vseq.sv.
+  //   2. The re-open file itself, compiled after chip_env_pkg closes.
+  //
+  // {self_dir} resolves to the directory of THIS hjson file (overlay/).
+  // -----------------------------------------------------------------------
+  build_opts: [
+    "+incdir+{self_dir}/../tests/smoke"
+    "{self_dir}/titan_vseq_extras.sv"
+  ]
+
   // ---------------------------------------------------------------------
   // Trainee tests — one entry per test. Pattern for a minimal C test:
   //   new .c + opentitan_test() in sw/trainee/BUILD + one entry here,
@@ -29,7 +47,7 @@
   tests: [
     {
       name: titan_sw_hello_test
-      uvm_test_seq: chip_sw_base_vseq
+      uvm_test_seq: titan_hello_vseq
       sw_images: ["//sw/device/tests/titan:hello_test:1:new_rules"]
       en_run_modes: ["sw_test_mode_test_rom"]
       run_timeout_mins: 60
