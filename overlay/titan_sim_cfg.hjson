@@ -22,12 +22,16 @@
   //   new .c + opentitan_test() in sw/trainee/BUILD + one entry here,
   //   then ./scripts/sync_trainee_sw.sh before running.
   // ---------------------------------------------------------------------
+  // Pattern copied from the upstream template `chip_sw_example_flash`:
+  // sw_test_mode_test_rom provides the TEST ROM image AND chains
+  // format_sw_images + gen_otp_images_mode (without it the sim dies at t=0:
+  // "otp_ctrl_img_rma.vmem could not be opened" — no OTP image in run_dir).
   tests: [
     {
       name: titan_sw_hello_test
       uvm_test_seq: chip_sw_base_vseq
-      sw_images: ["//sw/device/lib/testing/test_rom:test_rom:0",
-                  "//sw/device/tests/titan:hello_test:1:new_rules"]
+      sw_images: ["//sw/device/tests/titan:hello_test:1:new_rules"]
+      en_run_modes: ["sw_test_mode_test_rom"]
       run_timeout_mins: 60
     }
   ]
