@@ -32,7 +32,13 @@ set -euo pipefail
 REPO_TOP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OT="${REPO_TOP}/vendor/opentitan"
 SIM_CFG="${OT}/hw/top_earlgrey/dv/chip_sim_cfg.hjson"
-TEST_NAME="chip_sw_gpio_smoketest"
+# Test selection:  TEST=chip_sw_uart_smoketest ./sim/run_xcelium.sh
+TEST_NAME="${TEST:-chip_sw_gpio_smoketest}"
+
+# All dvsim output (build + run logs, waves) goes under sim/scratch/ in THIS
+# repo — nobody has to dig inside vendor/. sim/runs/latest always points at
+# the newest run dir of the last executed test.
+SCRATCH="${REPO_TOP}/sim/scratch"
 
 # --- Guard: must be inside the activated venv ---------------------------------
 if ! command -v dvsim >/dev/null 2>&1; then
@@ -51,14 +57,32 @@ fi
 cd "${OT}"
 
 # --- The command --------------------------------------------------------------
-# --tool xcelium : use Cadence Xcelium backend (default cfg tool is vcs).
-# --local        : dispatch jobs on this machine (no LSF/cloud scheduler).
-# --fixed-seed 1 : deterministic run for first bring-up.
-# "$@"           : pass-through for --build-only / --waves shm / etc.
+# --tool xcelium    : use Cadence Xcelium backend (default cfg tool is vcs).
+# --local           : dispatch jobs on this machine (no LSF/cloud scheduler).
+# --fixed-seed 1    : deterministic run for first bring-up.
+# --scratch-root    : keep all logs/waves in <repo>/sim/scratch (not vendor/).
+# "$@"              : pass-through for --build-only / --waves shm / etc.
 set -x
+rc=0
 dvsim "${SIM_CFG}" \
     -i "${TEST_NAME}" \
     --tool xcelium \
     --local \
     --fixed-seed 1 \
-    "$@"
+    --scratch-root "${SCRATCH}" \
+    "$@" || rc=$?
+set +x
+
+# --- Convenience pointers ------------------------------------------------------
+# dvsim layout: <scratch>/<branch>/chip_earlgrey_asic-sim-xcelium/<n>.<test>/latest
+TEST_DIR="$(ls -dt "${SCRATCH}"/*/chip_earlgrey_asic-sim-xcelium/*."${TEST_NAME}" 2>/dev/null | head -1 || true)"
+if [[ -n "${TEST_DIR}" && -e "${TEST_DIR}/latest" ]]; then
+    mkdir -p "${REPO_TOP}/sim/runs"
+    ln -sfn "$(readlink -f "${TEST_DIR}/latest")" "${REPO_TOP}/sim/runs/latest"
+    ln -sfn "$(readlink -f "${TEST_DIR}/latest")" "${REPO_TOP}/sim/runs/${TEST_NAME}"
+    echo ""
+    echo "run dir : sim/runs/latest  ->  $(readlink -f "${TEST_DIR}/latest")"
+    echo "main log: sim/runs/latest/run.log"
+fi
+
+exit "${rc}"

@@ -1,6 +1,8 @@
 # Xcelium simulation outputs
 sim/runs/*
 !sim/runs/.gitkeep
+# dvsim scratch area (build + run logs, waves) — see sim/run_xcelium.sh
+sim/scratch/
 xcelium.d/
 xrun.log
 xrun.history
