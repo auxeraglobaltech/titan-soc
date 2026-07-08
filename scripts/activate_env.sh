@@ -36,6 +36,11 @@ if [[ ! -f "${_TITAN_VENV}/bin/activate" ]]; then
     return 1 2>/dev/null || exit 1
 fi
 
+# A non-UTF8 locale (e.g. LANG=en_US from ~/cshrc) makes Python encode files
+# as latin-1 and dvsim's report writer crashes on em-dashes. Force UTF-8.
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
 # srec_cat shim (Python replacement for the srecord host package).
 # Lives in the repo (scripts/srec_cat) so a fresh clone works without any
 # machine-local install; ~/.local/bin kept as fallback for other host tools.

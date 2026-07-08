@@ -24,6 +24,11 @@ else
         source ~/cshrc >& /dev/null
     endif
 
+    # ~/cshrc sets LANG=en_US (no UTF-8): Python then encodes files as
+    # latin-1 and dvsim's report writer crashes on em-dashes. Force UTF-8.
+    setenv LANG en_US.UTF-8
+    setenv LC_ALL en_US.UTF-8
+
     # Isolated interpreter that backs the venv (documentation/repair only)
     setenv TITAN_BASE_PYTHON ${HOME}/.local/opt/python-3.11.15-titan/bin/python3
 
