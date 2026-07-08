@@ -12,16 +12,17 @@
   import_cfgs: ["{proj_root}/hw/top_earlgrey/dv/chip_sim_cfg.hjson"]
 
   // ---------------------------------------------------------------------
-  // Trainee tests — add entries below. Minimal C-test entry:
-  //
-  // tests: [
-  //   {
-  //     name: titan_sw_hello_test
-  //     uvm_test_seq: chip_sw_base_vseq
-  //     sw_images: ["//sw/device/lib/testing/test_rom:test_rom:0",
-  //                 "//sw/device/tests/titan:hello_test:1:new_rules"]
-  //     run_timeout_mins: 60
-  //   }
-  // ]
+  // Trainee tests — one entry per test. Pattern for a minimal C test:
+  //   new .c + opentitan_test() in sw/trainee/BUILD + one entry here,
+  //   then ./scripts/sync_trainee_sw.sh before running.
   // ---------------------------------------------------------------------
+  tests: [
+    {
+      name: titan_sw_hello_test
+      uvm_test_seq: chip_sw_base_vseq
+      sw_images: ["//sw/device/lib/testing/test_rom:test_rom:0",
+                  "//sw/device/tests/titan:hello_test:1:new_rules"]
+      run_timeout_mins: 60
+    }
+  ]
 }

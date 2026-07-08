@@ -6,14 +6,14 @@ Trainees write UVM test classes here; the base sequences, agents, and environmen
 are inherited from `vendor/opentitan/hw/top_earlgrey/dv/` (reused verbatim via
 Option B — see `docs/ARCHITECTURE.md`).
 
-## Planned sub-directories
+## Sub-directories
 
-| Path | Purpose |
-|------|---------|
-| `tests/smoke/` | Bring-up / connectivity tests |
-| `tests/functional/` | Per-IP functional test cases |
-| `tests/integration/` | Cross-IP integration scenarios |
-| `tests/system/` | Full-chip system tests |
+| Path | Purpose | Status |
+|------|---------|--------|
+| `tests/smoke/` | Bring-up vseq templates (Exercise 2) | template + compile-mechanism notes in `tests/smoke/README.md` |
+| `tests/functional/` | Per-IP functional test cases | created when first needed |
+| `tests/integration/` | Cross-IP integration scenarios | created when first needed |
+| `tests/system/` | Full-chip system tests | created when first needed |
 
 ## Naming convention
 

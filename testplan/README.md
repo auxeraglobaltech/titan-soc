@@ -2,13 +2,13 @@
 
 Test plan documents for titan-soc, organized by verification tier.
 
-## Files (to be populated in Phase 2+)
+## Files
 
-| File | Scope |
-|------|-------|
-| `testplan/connectivity.md` | Pin/bus connectivity and reset checks |
-| `testplan/integration.md` | Cross-IP integration scenarios |
-| `testplan/system.md` | Full-chip system-level scenarios |
+| File | Scope | Entries |
+|------|-------|---------|
+| `testplan/connectivity.md` | Pin/bus connectivity and reset checks | CONN-1…5 (4 ✅ passing) |
+| `testplan/integration.md` | Cross-IP integration scenarios | INT-1…4 (2 ✅ passing) |
+| `testplan/system.md` | Full-chip system-level scenarios | SYS-1…3 (planned) |
 
 ## Format
 
