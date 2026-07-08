@@ -23,7 +23,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIBDIR="${HOME}/.local/lib64"
 PCDIR="${LIBDIR}/pkgconfig"
-OSSL_INC="${HOME}/tools/install/IC251/tools.lnx86/atlas/python3.12/prefix/include"
+
+# Tool mount moves across server restarts — never hardcode it (NOTES #10/#11).
+TOOLS_ROOT="$("${SCRIPT_DIR}/find_tools_root.sh")"
+OSSL_INC="${TOOLS_ROOT}/IC251/tools.lnx86/atlas/python3.12/prefix/include"
+if [[ ! -e "${OSSL_INC}/openssl/conf.h" ]]; then
+    echo "ERROR: OpenSSL headers not found at ${OSSL_INC}" >&2
+    exit 1
+fi
 
 mkdir -p "${PCDIR}"
 
@@ -31,6 +38,13 @@ mkdir -p "${PCDIR}"
 ln -sf /usr/lib64/libssl.so.3    "${LIBDIR}/libssl.so"
 ln -sf /usr/lib64/libcrypto.so.3 "${LIBDIR}/libcrypto.so"
 ln -sf /usr/lib64/libudev.so.1   "${LIBDIR}/libudev.so"
+
+# libtinfo.so.5 for Cadence tools on RHEL9 (host only ships libtinfo.so.6);
+# Xcelium bundles one — link against the CURRENT mount.
+_tinfo="$(ls -d "${TOOLS_ROOT}"/XCELIUM*/tools.lnx86/lib/64bit/RHEL/RHEL9/libtinfo.so.5 2>/dev/null | head -1)"
+if [[ -n "${_tinfo}" ]]; then
+    ln -sfn "${_tinfo}" "${LIBDIR}/libtinfo.so.5"
+fi
 
 # --- libftdi1 stub -------------------------------------------------------------
 # STATIC archive on purpose: with only libftdi1.a on the -L path, ld links the

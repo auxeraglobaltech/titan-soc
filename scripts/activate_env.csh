@@ -45,8 +45,11 @@ else
         setenv REPO_TOP ${_titan_repo}/vendor/opentitan
 
         # OpenSSL dev headers/libs for DPI C models + host lib shims
-        # (see scripts/setup_host_shims.sh and docs/XCELIUM_NOTES.md rows 5,8,9)
-        set _ossl_inc = ${HOME}/tools/install/IC251/tools.lnx86/atlas/python3.12/prefix/include
+        # (see scripts/setup_host_shims.sh and docs/XCELIUM_NOTES.md rows 5,8,9,11)
+        # Tools root resolved dynamically — the mount moves across restarts.
+        set _tools_root = `${_titan_repo}/scripts/find_tools_root.sh`
+        if ("${_tools_root}" == "") set _tools_root = /nonexistent
+        set _ossl_inc = ${_tools_root}/IC251/tools.lnx86/atlas/python3.12/prefix/include
         if (! -e /usr/include/openssl/conf.h && -e ${_ossl_inc}/openssl/conf.h) then
             setenv CPATH ${_ossl_inc}
             setenv LIBRARY_PATH ${HOME}/.local/lib64

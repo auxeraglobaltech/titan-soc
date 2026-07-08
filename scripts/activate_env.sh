@@ -59,7 +59,8 @@ export REPO_TOP="${_TITAN_REPO}/vendor/opentitan"
 # shipped inside the Cadence IC251 python prefix + dev symlinks to the system
 # libcrypto.so.3 prepared in ~/.local/lib64. gcc honors CPATH (-I) and
 # LIBRARY_PATH (-L). Guarded: no-op on hosts with a real openssl-devel.
-_OSSL_INC="${HOME}/tools/install/IC251/tools.lnx86/atlas/python3.12/prefix/include"
+# Tools root is resolved dynamically — the mount moves across restarts (#11).
+_OSSL_INC="$("${_TITAN_REPO}/scripts/find_tools_root.sh" 2>/dev/null || echo /nonexistent)/IC251/tools.lnx86/atlas/python3.12/prefix/include"
 if [[ ! -e /usr/include/openssl/conf.h && -e "${_OSSL_INC}/openssl/conf.h" ]]; then
     export CPATH="${_OSSL_INC}${CPATH:+:${CPATH}}"
     export LIBRARY_PATH="${HOME}/.local/lib64${LIBRARY_PATH:+:${LIBRARY_PATH}}"
