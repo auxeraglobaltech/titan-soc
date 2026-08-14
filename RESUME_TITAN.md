@@ -1,7 +1,10 @@
 # RESUME — titan-soc session handoff
 
-> Read this first when resuming. Then `git log --oneline -10` + the README
-> phase table. Last updated 2026-08-14.
+> Read this first when resuming — it is the *volatile* state (what just
+> happened, what to do next). For stable reference — SoC description, memory
+> map, commands, DV environment, how to add a test — see
+> **[`docs/MASTER.md`](docs/MASTER.md)**, the single source of truth.
+> Then `git log --oneline -10`. Last updated 2026-08-14.
 
 ---
 

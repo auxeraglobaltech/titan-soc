@@ -1,7 +1,12 @@
 # titan-soc Architecture
 
-This document records all fixed design decisions for the titan-soc training
-environment. Changes to any item here require explicit team agreement.
+This document records the fixed **design decisions** for titan-soc. Changes to
+any item here require explicit team agreement.
+
+> 📖 For everything else — status, commands, memory map, SoC description, DV
+> environment internals, how to add a test — see
+> **[`docs/MASTER.md`](MASTER.md)**, the single source of truth. This page is
+> the "why we decided X" record only.
 
 ---
 
@@ -64,12 +69,23 @@ Relevant binaries:
 
 ### 2.5 C test style
 
-- **Thin bare-metal C** with a `tohost` pass/fail convention.
-- **No DIF layer.** Trainees access registers directly using offsets from the
-  chip memory map.
-- Tests are one `.c` file per scenario under `sw/tests/`.
-- Pass condition: write `1` (non-zero) to the `tohost` symbol before returning.
-- Fail condition: write `0` to `tohost`, or loop indefinitely.
+> **Revised in Phase 3–5.** The original decision (raw register offsets, spike
+> `tohost`, `sw/tests/`) did not survive contact with the real chip: the TEST
+> ROM boot path requires the OTTF, and the OTTF brings the DIFs and the status
+> word with it. Recorded here rather than silently rewritten, because the
+> original wording still appears in older notes.
+
+- **Thin bare-metal C on the OTTF** (OpenTitan Test Framework):
+  `OTTF_DEFINE_TEST_CONFIG();` plus `bool test_main(void)`.
+- **DIFs are used**, not raw offsets — `dif_gpio_*`, `dif_rv_plic_*`, etc.
+  Hand-rolling register access on this chip means re-deriving integrity and
+  multi-register sequencing that the DIFs already get right.
+- Tests are one `.c` file per scenario under **`sw/trainee/`** (synced into the
+  vendor bazel tree by `scripts/sync_trainee_sw.sh`).
+- Pass condition: **return `true` from `test_main()`**, which the OTTF turns
+  into `SwTestStatusPassed` at the status word `0x411f0080`. This is the chip's
+  `tohost` equivalent — the spike `tohost` convention is **not** used at chip
+  level. See `docs/MASTER.md` §6.
 
 
 ### 2.6 Boot strategy
@@ -89,7 +105,7 @@ Relevant binaries:
 
 | Tree | Rule |
 |------|------|
-| `vendor/` | **Read-only.** Never edit files here. Treat as upstream source. |
+| `vendor/` | **Read-only, with one sanctioned exception (below).** Treat as upstream source. |
 | `overlay/` | **Our code.** All project-specific changes, additions, and patches live here. |
 
 The build system layers `overlay/` on top of `vendor/` so that overlay files take
@@ -98,13 +114,37 @@ precedence. This keeps the vendor tree clean for straightforward upstream upgrad
 > **If you find yourself editing a file under `vendor/`, stop.**  
 > Copy the relevant piece into the matching path under `overlay/` instead.
 
+### 3.1 The one sanctioned vendor edit
+
+Approved 2026-08-14 after the alternatives were shown to be impossible.
+
+Trainee vseqs must be compiled *inside* `chip_env_pkg` to subclass
+`chip_sw_base_vseq`, and dvsim emits `build_opts` **before** `-f {sv_flist}` —
+so nothing added via `build_opts` can ever see that package. A 16-line guarded
+`` `ifdef TITAN_VSEQ_EXTRAS `` include at the end of
+`hw/top_earlgrey/dv/env/seq_lib/chip_vseq_list.sv` is the only working hook. It
+is inert without the define, so upstream builds are unaffected.
+
+Because `vendor/opentitan` is a **submodule**, this repo cannot store that edit;
+it is kept as `overlay/patches/0001-titan-vseq-hook.patch` and re-applied
+automatically by `sim/run_xcelium.sh`. Consequence: `git status` permanently
+shows ` m vendor/opentitan`, and that is expected, not dirt.
+
+Full reasoning: quirk #12 in `docs/XCELIUM_NOTES.md`; `docs/MASTER.md` §7.4.
+
+Any *further* vendor edit needs the same bar: demonstrate no overlay-side
+mechanism exists, then add a patch file — never an unrecorded in-place edit.
+
 ---
 
 ## 4. Phase plan summary
 
-| Phase | Deliverable |
+Superseded by the 6-phase plan in `README.md` and `docs/MASTER.md` §3, which is
+the current one. Kept for history:
+
+| Phase | Deliverable (original Phase-0 plan) |
 |-------|------------|
-| 0 | Repo skeleton, architecture doc, README (this phase) |
+| 0 | Repo skeleton, architecture doc, README |
 | 1 | OpenTitan submodule pinned; FuseSoC / Xcelium elaboration verified |
 | 2 | First trainee UVM tests and C programs running; testplan populated |
 | 3 | Coverage closure, regression suite, training exercises documented |
@@ -124,4 +164,6 @@ Both repos share:
 
 ---
 
-*Last updated: Phase 1 — OpenTitan submodule pinned.*
+*Last updated: 2026-08-14 — §2.5 revised to match the OTTF/DIF reality, §3.1
+added for the sanctioned vendor patch, §4 superseded. Current status and
+everything operational: [`docs/MASTER.md`](MASTER.md).*

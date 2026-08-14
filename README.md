@@ -6,6 +6,10 @@ SystemVerilog/UVM SoC verification **training environment** for the
 This repo is the SoC-level companion to **Training-FE** (Ibex core DV). Structure
 and workflow conventions are kept recognizably similar between the two.
 
+> 📖 **[`docs/MASTER.md`](docs/MASTER.md) is the single source of truth** —
+> what the SoC is, current status, every command, memory map, DV environment,
+> how to add a test, spec links and glossary. This README is the short version.
+
 ---
 
 ## Purpose
