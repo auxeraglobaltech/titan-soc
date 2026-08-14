@@ -1,8 +1,19 @@
 #!/usr/bin/env bash
 # sim/run_xcelium.sh
 #
-# Ready-to-run Cadence Xcelium command for ONE OpenTitan chip-level smoke test:
-#   chip_sw_gpio_smoketest   (GPIO smoke, boots via the TEST ROM)
+# Runs ONE OpenTitan chip-level test on Cadence Xcelium.
+#
+#   TEST=<name> ./sim/run_xcelium.sh      (default: chip_sw_gpio_smoketest)
+#
+# Any test from the vendor chip_sim_cfg works, plus the trainee tests
+# registered in overlay/titan_sim_cfg.hjson:
+#   titan_sw_hello_test                 hello world + first vseq
+#   titan_sw_gpio_irq_test              INT-3, GPIO edge -> IRQ -> ISR
+#   titan_sw_gpio_out_selfcheck_test    CONN-2a, GPIO output loopback
+#   titan_sw_rv_timer_irq_test          INT-1a, repeated timer deadlines
+#
+# Before invoking dvsim this script re-applies the vendor patches and syncs
+# sw/trainee/, so a fresh clone needs no manual setup beyond the env.
 #
 # >>> THE HUMAN RUNS THIS. Claude Code never executes xrun. <<<
 #
@@ -61,6 +72,18 @@ if ! command -v xrun >/dev/null 2>&1; then
     echo "ERROR: 'xrun' (Xcelium) not found on PATH. Add Xcelium bin/ to PATH." >&2
     exit 1
 fi
+
+# --- Make the vendor tree self-healing ----------------------------------------
+# vendor/opentitan is a submodule, so titan-soc's local patches are NOT carried
+# by a checkout of this repo. Re-apply them (idempotent) so that a fresh clone
+# just works instead of failing with a confusing SVNOTY compile error.
+"${REPO_TOP}/scripts/apply_vendor_patches.sh"
+
+# --- Sync trainee SW into the OT bazel tree -----------------------------------
+# sw/trainee/ is the source of truth; bazel needs the sources inside the OT
+# workspace. Doing it here removes a manual step, and kills the "edited the .c,
+# forgot to sync, then debugged the previous binary" failure mode.
+"${REPO_TOP}/scripts/sync_trainee_sw.sh"
 
 # dvsim must run from the OpenTitan repo root (relative paths, ./bazelisk.sh).
 cd "${OT}"

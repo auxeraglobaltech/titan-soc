@@ -17,16 +17,30 @@ proving the trainee class was factory-registered and actually ran.
 The original package re-open technique **does not work and was removed** —
 see "vseq compile mechanism" below and quirk #12 in `docs/XCELIUM_NOTES.md`.
 
-**INT-3 CLOSED (2026-08-14)** — `titan_sw_gpio_irq_test` PASSES 1/1, 171s,
-`8 edges, 8 interrupts`. First trainee-authored C+UVM pair working end to end.
+**ALL 4 TRAINEE TESTS PASSING (2026-08-14)** — and the repo is now
+clone-and-run. Phase 5 items 1–5 are done.
 
-**Next operator action**: run the two C-only trainee tests.
+| Test | Kind | Result |
+|------|------|--------|
+| `titan_sw_hello_test` | C + vseq | ✅ 1/1, 125s |
+| `titan_sw_gpio_irq_test` | C + vseq (INT-3) | ✅ 1/1, 171s, 8 edges / 8 IRQs |
+| `titan_sw_gpio_out_selfcheck_test` | C only (CONN-2a) | ✅ 1/1, 168s |
+| `titan_sw_rv_timer_irq_test` | C only (INT-1a) | ✅ 1/1, 168s |
+
+`sim/regress.sh` now covers all 9 tests (5 upstream + 4 trainee).
+
+**Setup is automatic.** `sim/run_xcelium.sh` calls
+`scripts/apply_vendor_patches.sh` and `scripts/sync_trainee_sw.sh` on every
+invocation, both idempotent. You no longer need to sync SW by hand, and a
+fresh clone self-heals the vendor patch. Verified by reverting the vendor file
+and re-running.
+
+**Next operator action**: run the full regression to confirm nothing regressed,
+then pick up the remaining backlog.
 
 ```csh
 source scripts/activate_env.csh
-./scripts/sync_trainee_sw.sh
-env TEST=titan_sw_gpio_out_selfcheck_test ./sim/run_xcelium.sh
-env TEST=titan_sw_rv_timer_irq_test       ./sim/run_xcelium.sh
+./sim/regress.sh
 ```
 
 Verify (csh — note `set L = ...`, and no `#` comments; csh has none
@@ -37,10 +51,6 @@ stat -c "%y" $L
 grep -E "^UVM_(ERROR|FATAL) :" $L
 grep -E "TEST (PASSED|FAILED)" $L
 ```
-
-Neither uses a vseq, so failures are pure SW. Most likely cause for
-gpio_out_selfcheck is quirk #14 (X from a floating pad on `read_all`) — it
-already drives all 32 pins defensively, but that is the first thing to check.
 
 ---
 
@@ -109,14 +119,23 @@ Being included inside the original package block fixes both at once.
 1. ✅ **Close Phase 4**: done — hello_test PASSING
 2. ✅ **Validate vseq compile**: done 2026-08-14 via guarded include (not package re-open)
 3. ✅ **First trainee test**: `titan_sw_gpio_irq_test` (INT-3) — PASSING 2026-08-14
-4. Written, RUN PENDING (C-only, no vseq — command above):
+4. ✅ **C-only trainee tests**: both PASSING 2026-08-14
    - `titan_sw_gpio_out_selfcheck_test` (CONN-2a) — GPIO output loopback, self-checked
    - `titan_sw_rv_timer_irq_test` (INT-1a) — 5 timer deadlines, one IRQ each
-5. Once green: add the three to `sim/regress.sh` smoke set
-6. Still unwritten: INT-4 (UART watermark IRQ, C+UVM pair); pure-UVM tests
-   (need the stub-CPU path, `chip_stub_cpu_base_vseq` — different lift)
-7. Coverage closure pass (`COV=1 ./sim/regress.sh`), merge in IMC
-8. Feasibility check: `chip_sw_pwrmgr_smoketest` (SYS-1)
+5. ✅ **regress.sh**: all 4 trainee tests added (9 total)
+6. ✅ **Clone-and-run**: `run_xcelium.sh` auto-applies vendor patches + syncs SW
+
+### Remaining
+
+7. **Run `./sim/regress.sh` end to end** — the 9-test set has never been run as
+   a whole; individual passes are confirmed but the suite is not.
+8. **INT-4**: UART RX watermark IRQ (C+UVM pair) — designed in
+   `testplan/integration.md`, not written.
+9. **Pure-UVM tests**: still zero. Needs the stub-CPU path
+   (`chip_stub_cpu_base_vseq`), a different lift from the SW-driven flow —
+   scope it before promising it.
+10. Coverage closure pass (`COV=1 ./sim/regress.sh`), merge in IMC.
+11. Feasibility check: `chip_sw_pwrmgr_smoketest` (SYS-1).
 
 ---
 

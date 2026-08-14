@@ -64,7 +64,7 @@ Two constraints that are easy to break:
 | Test entry | `titan_sw_rv_timer_irq_test` |
 | Pass criteria | exactly `kNumDeadlines` (5) interrupts; counter never goes backwards |
 | Coverage goal | timer IRQ line exercised across ≥ 5 arm/ack cycles |
-| Status | 🔲 written, first run pending |
+| Status | ✅ **passing (2026-08-14)** — 1/1, 168s |
 
 Extends INT-1 past a single shot: catches a stale comparator, an IRQ that
 fails to re-assert after acknowledge, or a counter that stops advancing.

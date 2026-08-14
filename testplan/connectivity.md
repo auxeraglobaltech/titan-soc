@@ -39,7 +39,7 @@ feature / test file(s) / pass criteria / coverage goal.
 | Test entry | `titan_sw_gpio_out_selfcheck_test` |
 | Pass criteria | every written pattern reads back identically on `DATA_IN` |
 | Coverage goal | walking 1s + walking 0s + all-0/all-1/0xA/0x5 over the testable mask |
-| Status | 🔲 written, first run pending |
+| Status | ✅ **passing (2026-08-14)** — 1/1, 168s |
 
 Complements CONN-2: the smoketest observes the pins externally from the TB,
 this one closes the loop on-chip. Walking 0s is what catches stuck-high pins,

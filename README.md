@@ -42,17 +42,65 @@ source scripts/activate_env.sh      # bash users
 # 4. Run a chip-level test (default: chip_sw_gpio_smoketest)
 ./sim/run_xcelium.sh
 env TEST=chip_sw_uart_smoketest ./sim/run_xcelium.sh   # pick another test
+env TEST=titan_sw_gpio_irq_test ./sim/run_xcelium.sh   # a trainee test
 ./sim/run_xcelium.sh --waves shm                       # with SHM waves
 ./sim/run_xcelium.sh --build-only                      # elaborate only
 
 # 5. Results — never dig inside vendor/:
 less sim/runs/latest/run.log            # main UVM log of the newest run
 simvision sim/runs/latest/waves.shm &   # waves (if dumped)
+
+# 6. Full smoke regression (9 tests, serial — takes a while)
+./sim/regress.sh
 ```
 
-Both `chip_sw_gpio_smoketest` and `chip_sw_uart_smoketest` pass 1/1 on
-Xcelium. Bring-up history and every host quirk fixed along the way:
+Nothing else is needed: `run_xcelium.sh` re-applies the vendor patches
+(`overlay/patches/`) and syncs `sw/trainee/` on every invocation, both
+idempotent. Bring-up history and every host quirk fixed along the way:
 [`docs/XCELIUM_NOTES.md`](docs/XCELIUM_NOTES.md).
+
+---
+
+## Tests
+
+All **9** pass 1/1 on Xcelium (2026-08-14).
+
+| Test | Kind | Plan | What it proves |
+|------|------|------|----------------|
+| `chip_sw_gpio_smoketest` | upstream | CONN-2 | GPIO pads reach the TB |
+| `chip_sw_uart_smoketest` | upstream | CONN-3 | UART TX/RX to the DV agent |
+| `chip_sw_rv_timer_smoketest` | upstream | INT-1 | timer IRQ to Ibex |
+| `chip_sw_aon_timer_smoketest` | upstream | INT-2 | AON wakeup/watchdog |
+| `chip_sw_sram_ctrl_smoketest` | upstream | CONN-4 | main + retention SRAM |
+| `titan_sw_hello_test` | trainee, C + vseq | CONN-5 | the trainee workflow end to end |
+| `titan_sw_gpio_irq_test` | trainee, C + vseq | INT-3 | GPIO edge → PLIC → ISR; 8 edges, 8 IRQs |
+| `titan_sw_gpio_out_selfcheck_test` | trainee, C only | CONN-2a | GPIO output loopback, self-checked |
+| `titan_sw_rv_timer_irq_test` | trainee, C only | INT-1a | 5 timer deadlines, one IRQ each |
+
+### Adding a trainee test
+
+**C only** (no testbench interaction) — inherits the default
+`chip_sw_base_vseq`:
+
+1. `sw/trainee/<name>.c` + an `opentitan_test()` in `sw/trainee/BUILD`
+2. one entry in `overlay/titan_sim_cfg.hjson`, with **no** `uvm_test_seq`
+
+**C + UVM pair** (the testbench must drive or observe something) — two more
+steps:
+
+3. `tests/smoke/<name>_vseq.sv`, plus one `` `include `` in
+   `tests/smoke/titan_vseq_list.sv`
+4. set `uvm_test_seq: <name>_vseq` on the test entry
+
+Then `env TEST=<name> ./sim/run_xcelium.sh`. See `docs/TRAINEE_GUIDE.md`.
+
+> **Why trainee vseqs go through `titan_vseq_list.sv`**: every upstream vseq
+> lives *inside* `chip_env_pkg`, and dvsim emits `build_opts` before
+> `-f {sv_flist}` — so a vseq added via `build_opts` compiles before that
+> package exists and cannot see `chip_sw_base_vseq`. The only working hook is a
+> guarded `` `include `` at the end of the vendor `chip_vseq_list.sv`, stored in
+> `overlay/patches/` and re-applied automatically. Full reasoning: quirk #12 in
+> [`docs/XCELIUM_NOTES.md`](docs/XCELIUM_NOTES.md).
 
 ---
 
@@ -61,8 +109,11 @@ Xcelium. Bring-up history and every host quirk fixed along the way:
 ```
 titan-soc/
 ├── vendor/          # Third-party sources (OpenTitan submodule — Phase 1)
-│                    #   READ-ONLY. Never edit here.
+│                    #   READ-ONLY, except the patches in overlay/patches/,
+│                    #   which run_xcelium.sh re-applies automatically.
 ├── overlay/         # Our overrides/extensions layered on top of vendor/
+│   └── patches/     #   Local patches to vendor/ (a submodule cannot carry
+│                    #   them) — see overlay/patches/README.md
 ├── tests/           # Trainee UVM test classes
 ├── sw/              # Trainee thin bare-metal C test programs
 ├── testplan/        # Connectivity / integration / system test plans
@@ -82,7 +133,7 @@ titan-soc/
 | **2** | Build prerequisites, toolchain, Python env | ✅ done |
 | **3** | First chip tests passing on Xcelium (gpio + uart smoke, 1/1) | ✅ done |
 | **4** | Trainee tests & testplan; coverage; regression suite (5-test smoke green) | ✅ done |
-| **5** | Trainee vseq compile path validated; first cohort exercises; coverage closure | ← *next* |
+| **5** | Trainee vseq compile path validated; first cohort exercises (INT-3, CONN-2a, INT-1a passing); coverage closure | ← *in progress* |
 
 ---
 
