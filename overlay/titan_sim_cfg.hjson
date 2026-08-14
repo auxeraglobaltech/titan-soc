@@ -18,21 +18,33 @@
   rel_path: "hw/top_earlgrey/dv"
 
   // -----------------------------------------------------------------------
-  // Trainee vseq compile extension (package re-open technique).
+  // Trainee vseq compile extension (guarded vendor include).
   //
-  // All upstream vseqs live inside chip_env_pkg (included via
-  // chip_vseq_list.sv). To add trainee vseqs without editing vendor/ we
-  // re-open the package in overlay/titan_vseq_extras.sv.  Two build_opts
-  // are required:
-  //   1. +incdir+ pointing at tests/smoke/ so the `include inside the
-  //      re-opened package can find titan_hello_vseq.sv.
-  //   2. The re-open file itself, compiled after chip_env_pkg closes.
+  // All upstream vseqs live inside chip_env_pkg, pulled in via
+  // chip_vseq_list.sv at chip_env_pkg.sv:183. Trainee vseqs must land inside
+  // that same package block, so chip_vseq_list.sv ends with:
+  //
+  //     `ifdef TITAN_VSEQ_EXTRAS
+  //       `include "titan_vseq_list.sv"
+  //     `endif
+  //
+  // Two build_opts drive it:
+  //   1. +incdir+ so that `include "titan_vseq_list.sv"` (and the vseq files
+  //      it lists) resolve to titan-soc/tests/smoke/.
+  //   2. +define+ to switch the hook on. Upstream builds omit it and are
+  //      therefore unaffected.
+  //
+  // DO NOT try to add a .sv file here instead. dvsim emits build_opts BEFORE
+  // "-f {sv_flist}" (xcelium.hjson:10-17), so any file added this way is
+  // compiled before chip_env_pkg exists and cannot see chip_sw_base_vseq.
+  // That is what the earlier package re-open attempt hit. See
+  // docs/XCELIUM_NOTES.md.
   //
   // {self_dir} resolves to the directory of THIS hjson file (overlay/).
   // -----------------------------------------------------------------------
   build_opts: [
     "+incdir+{self_dir}/../tests/smoke"
-    "{self_dir}/titan_vseq_extras.sv"
+    "+define+TITAN_VSEQ_EXTRAS"
   ]
 
   // ---------------------------------------------------------------------
@@ -49,6 +61,36 @@
       name: titan_sw_hello_test
       uvm_test_seq: titan_hello_vseq
       sw_images: ["//sw/device/tests/titan:hello_test:1:new_rules"]
+      en_run_modes: ["sw_test_mode_test_rom"]
+      run_timeout_mins: 60
+    }
+
+    // INT-3 (testplan/integration.md): GPIO interrupt on input edge.
+    // C + UVM pair — the vseq drives the pin edges, the C ISR does all the
+    // checking. Depends on the package re-open compile path above.
+    {
+      name: titan_sw_gpio_irq_test
+      uvm_test_seq: titan_gpio_irq_vseq
+      sw_images: ["//sw/device/tests/titan:gpio_irq_test:1:new_rules"]
+      en_run_modes: ["sw_test_mode_test_rom"]
+      run_timeout_mins: 60
+    }
+
+    // CONN-2 extension: GPIO output loopback checked entirely in SW.
+    // C-only — no uvm_test_seq, so it inherits the default
+    // chip_sw_base_vseq (chip_sim_cfg.hjson:158) and does NOT depend on the
+    // package re-open mechanism.
+    {
+      name: titan_sw_gpio_out_selfcheck_test
+      sw_images: ["//sw/device/tests/titan:gpio_out_selfcheck_test:1:new_rules"]
+      en_run_modes: ["sw_test_mode_test_rom"]
+      run_timeout_mins: 60
+    }
+
+    // INT-1 extension: repeated rv_timer deadlines. C-only, as above.
+    {
+      name: titan_sw_rv_timer_irq_test
+      sw_images: ["//sw/device/tests/titan:rv_timer_irq_test:1:new_rules"]
       en_run_modes: ["sw_test_mode_test_rom"]
       run_timeout_mins: 60
     }

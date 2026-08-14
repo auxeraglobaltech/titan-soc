@@ -1,0 +1,24 @@
+diff --git a/hw/top_earlgrey/dv/env/seq_lib/chip_vseq_list.sv b/hw/top_earlgrey/dv/env/seq_lib/chip_vseq_list.sv
+index 2497e384ed..d665eafda8 100644
+--- a/hw/top_earlgrey/dv/env/seq_lib/chip_vseq_list.sv
++++ b/hw/top_earlgrey/dv/env/seq_lib/chip_vseq_list.sv
+@@ -111,3 +111,19 @@
+ `include "chip_sw_power_sleep_load_vseq.sv"
+ `include "chip_sw_ast_clk_rst_inputs_vseq.sv"
+ `include "chip_sw_power_virus_vseq.sv"
++
++// ---------------------------------------------------------------------------
++// titan-soc trainee vseq hook (LOCAL PATCH, not upstream).
++//
++// TITAN_VSEQ_EXTRAS is defined only by overlay/titan_sim_cfg.hjson build_opts,
++// which also add +incdir+ for titan-soc/tests/smoke. Without the define this
++// is inert, so an upstream build is unaffected.
++//
++// This must stay at the END of the list: trainee vseqs extend
++// chip_sw_base_vseq, which is declared above.
++//
++// Re-apply after any vendor submodule bump. See docs/XCELIUM_NOTES.md.
++// ---------------------------------------------------------------------------
++`ifdef TITAN_VSEQ_EXTRAS
++  `include "titan_vseq_list.sv"
++`endif

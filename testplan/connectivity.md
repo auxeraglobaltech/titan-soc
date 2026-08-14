@@ -30,6 +30,21 @@ feature / test file(s) / pass criteria / coverage goal.
 | Coverage goal | all 32 GPIOs toggled both directions (functional cov in upstream env) |
 | Status | ✅ passing (Phase 3) |
 
+## CONN-2a: GPIO output loopback, self-checked in SW
+
+| Field | Value |
+|-------|-------|
+| Feature | Same pad/pinmux loopback as CONN-2, but the check closes in software via `DATA_IN` |
+| Test(s) | trainee-authored: `sw/trainee/gpio_out_selfcheck_test.c` (C-only, no vseq) |
+| Test entry | `titan_sw_gpio_out_selfcheck_test` |
+| Pass criteria | every written pattern reads back identically on `DATA_IN` |
+| Coverage goal | walking 1s + walking 0s + all-0/all-1/0xA/0x5 over the testable mask |
+| Status | 🔲 written, first run pending |
+
+Complements CONN-2: the smoketest observes the pins externally from the TB,
+this one closes the loop on-chip. Walking 0s is what catches stuck-high pins,
+which walking 1s alone would miss.
+
 ## CONN-3: UART TX/RX connectivity
 
 | Field | Value |
@@ -58,7 +73,7 @@ feature / test file(s) / pass criteria / coverage goal.
 | Test(s) | `titan_sw_hello_test` (`sw/trainee/hello_test.c`) |
 | Pass criteria | `LOG_INFO` string in sw_logger log; `SwTestStatusPassed` |
 | Coverage goal | n/a — workflow validation, not feature coverage |
-| Status | 🔲 registered in `overlay/titan_sim_cfg.hjson`, first run pending |
+| Status | ✅ passing (2026-08-14) — 1/1, 125s, UVM_ERROR 0. Also validates the trainee **vseq** path: sequencer instance was `...virtual_sequencer.titan_hello_vseq` |
 
 ---
 
