@@ -8,11 +8,15 @@
 
 +incdir+$IP_ROOT/adc_ctrl/rtl
 
-$IP_ROOT/adc_ctrl/rtl/ast_pkg.sv
+// Packages, topologically sorted by their actual cross-references.
+// Regenerate with IP/scripts/order_pkgs.py -- do not hand-sort.
 $IP_ROOT/adc_ctrl/rtl/adc_ctrl_pkg.sv
 $IP_ROOT/adc_ctrl/rtl/adc_ctrl_reg_pkg.sv
+$IP_ROOT/adc_ctrl/rtl/ast_pkg.sv
+
+// Modules. Order does not matter in SystemVerilog.
+$IP_ROOT/adc_ctrl/rtl/adc_ctrl.sv
 $IP_ROOT/adc_ctrl/rtl/adc_ctrl_core.sv
 $IP_ROOT/adc_ctrl/rtl/adc_ctrl_fsm.sv
 $IP_ROOT/adc_ctrl/rtl/adc_ctrl_intr.sv
 $IP_ROOT/adc_ctrl/rtl/adc_ctrl_reg_top.sv
-$IP_ROOT/adc_ctrl/rtl/adc_ctrl.sv

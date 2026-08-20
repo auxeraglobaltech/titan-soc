@@ -3,8 +3,12 @@
 
 +incdir+$IP_ROOT/pwm/rtl
 
+// Packages, topologically sorted by their actual cross-references.
+// Regenerate with IP/scripts/order_pkgs.py -- do not hand-sort.
 $IP_ROOT/pwm/rtl/pwm_reg_pkg.sv
+
+// Modules. Order does not matter in SystemVerilog.
+$IP_ROOT/pwm/rtl/pwm.sv
 $IP_ROOT/pwm/rtl/pwm_chan.sv
 $IP_ROOT/pwm/rtl/pwm_core.sv
 $IP_ROOT/pwm/rtl/pwm_reg_top.sv
-$IP_ROOT/pwm/rtl/pwm.sv

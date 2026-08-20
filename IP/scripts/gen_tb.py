@@ -118,12 +118,69 @@ def module_imports(text, ip, src):
     m = re.search(rf"^\s*module\s+{ip}\b(.*?)[(#]", text, re.M | re.S)
     found = re.findall(r"import\s+([A-Za-z_]\w*)\s*::", m.group(1)) if m else []
 
-    # The reg package holds NumAlerts / NumIOs / NumSrc and friends. Only add
-    # it if the IP actually defines one -- not every IP does.
-    reg = f"{ip}_reg_pkg"
-    if reg not in found and (src / f"{reg}.sv").exists():
-        found.append(reg)
+    # `<ip>_reg_pkg` holds NumAlerts / NumIOs / NumSrc; `<ip>_pkg` holds the
+    # hand-written parameters -- csrng's NumHwApps and kmac's NumAppIntf both
+    # live there and are used in port widths. Add whichever exist.
+    for extra in (f"{ip}_reg_pkg", f"{ip}_pkg"):
+        if extra not in found and (src / f"{extra}.sv").exists():
+            found.append(extra)
     return found
+
+
+def param_block(text, ip):
+    """Return [(name, full declaration)] from the module's #( ... ) block.
+
+    Port widths often use these -- csrng's NumHwApps is a derived localparam
+    and kmac's NumAppIntf a plain parameter, neither of which lives in any
+    package, so tb cannot see them by importing. Replicating the block is the
+    only way to declare ports of the same width.
+    """
+    m = re.search(rf"^\s*module\s+{ip}\b", text, re.M)
+    if not m:
+        return []
+    i = text.find("#(", m.end())
+    if i < 0:
+        return []
+    d, j = 0, i + 1
+    while j < len(text):
+        if text[j] == "(":
+            d += 1
+        elif text[j] == ")":
+            d -= 1
+            if d == 0:
+                break
+        j += 1
+    body = text[i + 2:j]
+    body = re.sub(r"//[^\n]*", "", body)
+
+    # split on top-level commas
+    parts, depth, cur = [], 0, ""
+    for c in body:
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        if c == "," and depth == 0:
+            parts.append(cur)
+            cur = ""
+        else:
+            cur += c
+    parts.append(cur)
+
+    out = []
+    for p in parts:
+        p = p.strip()
+        if not p:
+            continue
+        pm = re.match(r"^(?:parameter|localparam)\s+(.*)$", p, re.S)
+        if not pm:
+            continue
+        rest = pm.group(1).strip()
+        nm = re.match(r"^(.*?)\b([A-Za-z_]\w*)\s*(?:\[[^\]]*\])?\s*=", rest, re.S)
+        if not nm:
+            continue
+        out.append((nm.group(2), f"localparam {rest};"))
+    return out
 
 
 def decl_type(typ):
@@ -201,6 +258,31 @@ def main():
     A("    rst_n = 1'b1;")
     A("  end")
     A("")
+
+    # ---- parameters the port declarations depend on
+    params = param_block(text, ip)
+    if params:
+        used = set()
+        for _, typ, _, unpacked in ports:
+            used |= set(re.findall(r"\b([A-Za-z_]\w*)\b", typ + unpacked))
+        # a needed parameter's default may reference earlier parameters
+        needed, changed = set(), True
+        while changed:
+            changed = False
+            for name, decl in params:
+                if name in needed:
+                    continue
+                if name in used:
+                    needed.add(name)
+                    used |= set(re.findall(r"\b([A-Za-z_]\w*)\b", decl))
+                    changed = True
+        emit = [(n, d) for n, d in params if n in needed]
+        if emit:
+            A("  // Parameters the port widths depend on, copied from the module")
+            A("  // header. The DUT is instantiated with defaults, so these match.")
+            for _, decl in emit:
+                A(f"  {decl}")
+            A("")
 
     # ---- port declarations
     A("  // Port declarations. Inputs are tied to constants -- never floating.")

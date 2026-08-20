@@ -10,10 +10,15 @@
 
 +incdir+$IP_ROOT/aon_timer/rtl
 
-$IP_ROOT/aon_timer/rtl/lc_ctrl_state_pkg.sv
-$IP_ROOT/aon_timer/rtl/lc_ctrl_reg_pkg.sv
-$IP_ROOT/aon_timer/rtl/lc_ctrl_pkg.sv
+// Packages, topologically sorted by their actual cross-references.
+// Regenerate with IP/scripts/order_pkgs.py -- do not hand-sort.
 $IP_ROOT/aon_timer/rtl/aon_timer_reg_pkg.sv
+$IP_ROOT/aon_timer/rtl/lc_ctrl_reg_pkg.sv
+$IP_ROOT/aon_timer/rtl/lc_ctrl_state_pkg.sv
+$IP_ROOT/aon_timer/rtl/lc_ctrl_pkg.sv
+
+// Modules. Order does not matter in SystemVerilog.
+$IP_ROOT/aon_timer/rtl/aon_timer.sv
 $IP_ROOT/aon_timer/rtl/aon_timer_core.sv
 $IP_ROOT/aon_timer/rtl/aon_timer_reg_top.sv
-$IP_ROOT/aon_timer/rtl/aon_timer.sv
+$IP_ROOT/aon_timer/rtl/prim_lc_sync.sv

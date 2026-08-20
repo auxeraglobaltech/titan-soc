@@ -3,7 +3,11 @@
 
 +incdir+$IP_ROOT/rv_timer/rtl
 
+// Packages, topologically sorted by their actual cross-references.
+// Regenerate with IP/scripts/order_pkgs.py -- do not hand-sort.
 $IP_ROOT/rv_timer/rtl/rv_timer_reg_pkg.sv
-$IP_ROOT/rv_timer/rtl/rv_timer_reg_top.sv
+
+// Modules. Order does not matter in SystemVerilog.
 $IP_ROOT/rv_timer/rtl/rv_timer.sv
+$IP_ROOT/rv_timer/rtl/rv_timer_reg_top.sv
 $IP_ROOT/rv_timer/rtl/timer_core.sv

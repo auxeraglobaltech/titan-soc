@@ -13,18 +13,24 @@
 
 +incdir+$IP_ROOT/pwrmgr/rtl
 
-$IP_ROOT/pwrmgr/rtl/lc_ctrl_state_pkg.sv
-$IP_ROOT/pwrmgr/rtl/lc_ctrl_reg_pkg.sv
+// Packages, topologically sorted by their actual cross-references.
+// Regenerate with IP/scripts/order_pkgs.py -- do not hand-sort.
 $IP_ROOT/pwrmgr/rtl/ibex_pkg.sv
-$IP_ROOT/pwrmgr/rtl/rv_core_ibex_pkg.sv
+$IP_ROOT/pwrmgr/rtl/lc_ctrl_reg_pkg.sv
+$IP_ROOT/pwrmgr/rtl/lc_ctrl_state_pkg.sv
+$IP_ROOT/pwrmgr/rtl/pwrmgr_reg_pkg.sv
 $IP_ROOT/pwrmgr/rtl/rom_ctrl_pkg.sv
 $IP_ROOT/pwrmgr/rtl/lc_ctrl_pkg.sv
 $IP_ROOT/pwrmgr/rtl/pwrmgr_pkg.sv
-$IP_ROOT/pwrmgr/rtl/pwrmgr_reg_pkg.sv
-$IP_ROOT/pwrmgr/rtl/pwrmgr_cdc_pulse.sv
+$IP_ROOT/pwrmgr/rtl/rv_core_ibex_pkg.sv
+
+// Modules. Order does not matter in SystemVerilog.
+$IP_ROOT/pwrmgr/rtl/prim_lc_sender.sv
+$IP_ROOT/pwrmgr/rtl/prim_lc_sync.sv
+$IP_ROOT/pwrmgr/rtl/pwrmgr.sv
 $IP_ROOT/pwrmgr/rtl/pwrmgr_cdc.sv
+$IP_ROOT/pwrmgr/rtl/pwrmgr_cdc_pulse.sv
 $IP_ROOT/pwrmgr/rtl/pwrmgr_fsm.sv
 $IP_ROOT/pwrmgr/rtl/pwrmgr_reg_top.sv
 $IP_ROOT/pwrmgr/rtl/pwrmgr_slow_fsm.sv
-$IP_ROOT/pwrmgr/rtl/pwrmgr.sv
 $IP_ROOT/pwrmgr/rtl/pwrmgr_wake_info.sv

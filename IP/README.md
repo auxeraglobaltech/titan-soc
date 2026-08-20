@@ -45,27 +45,27 @@ README has hand-written spec analysis (`curated`) or only extracted facts
 |---|---|---|---|---|---|
 | [`gpio`](gpio/) | `ip_autogen/` | starter | ✅ | curated | Simplest. No protocol — "did the pin do what the register said" |
 | [`pwm`](pwm/) | `ip_autogen/` | starter | ✅ | curated | Small register file, no interrupts, but **two clock domains** |
-| [`rv_timer`](rv_timer/) | `hw/ip/` | starter | 🔲 | generated | One counter, one comparator, one interrupt |
-| [`pattgen`](pattgen/) | `hw/ip/` | starter | 🔲 | generated | Two channels shifting a programmed pattern out |
-| [`aon_timer`](aon_timer/) | `hw/ip/` | starter | 🔲 | generated | Wakeup + watchdog counters in the always-on domain |
-| [`hmac`](hmac/) | `hw/ip/` | starter+ | 🔲 | generated | Streaming hash — the reference model is a library call |
+| [`rv_timer`](rv_timer/) | `hw/ip/` | starter | ✅ | generated | One counter, one comparator, one interrupt |
+| [`pattgen`](pattgen/) | `hw/ip/` | starter | ✅ | generated | Two channels shifting a programmed pattern out |
+| [`aon_timer`](aon_timer/) | `hw/ip/` | starter | ✅ | generated | Wakeup + watchdog counters in the always-on domain |
+| [`hmac`](hmac/) | `hw/ip/` | starter+ | ✅ | generated | Streaming hash — the reference model is a library call |
 | [`uart`](uart/) | `hw/ip/` | intermediate | ✅ | curated | First real serial protocol; 9 interrupts; FIFOs and watermarks |
-| [`adc_ctrl`](adc_ctrl/) | `hw/ip/` | intermediate | 🔲 | generated | Sampling FSM with filters and a wakeup path |
-| [`mbx`](mbx/) | `hw/ip/` | intermediate | 🔲 | generated | Doorbell / inbox / outbox between two bus masters |
-| [`dma`](dma/) | `hw/ip/` | intermediate | 🔲 | generated | **Initiates** bus traffic — you need a TL-UL *device* agent too |
-| [`pinmux`](pinmux/) | `ip_autogen/` | intermediate | 🔲 | generated | Large muxing matrix plus wakeup detectors |
+| [`adc_ctrl`](adc_ctrl/) | `hw/ip/` | intermediate | ✅ | generated | Sampling FSM with filters and a wakeup path |
+| [`mbx`](mbx/) | `hw/ip/` | intermediate | ✅ | generated | Doorbell / inbox / outbox between two bus masters |
+| [`dma`](dma/) | `hw/ip/` | intermediate | ✅ | generated | **Initiates** bus traffic — you need a TL-UL *device* agent too |
+| [`pinmux`](pinmux/) | `ip_autogen/` | intermediate | ✅ | generated | Large muxing matrix plus wakeup detectors |
 | [`i2c`](i2c/) | `hw/ip/` | intermediate+ | ✅ | curated | Open-drain bus, controller **and** target mode, 15 interrupts |
 | [`spi_host`](spi_host/) | `hw/ip/` | intermediate+ | ✅ | curated | 3 data widths × 4 clock modes; segmented commands |
 | [`rv_plic`](rv_plic/) | `ip_autogen/` | advanced | ✅ | curated | 186 sources; needs a model-based scoreboard, not directed tests |
-| [`spi_device`](spi_device/) | `hw/ip/` | advanced | 🔲 | generated | Flash / passthrough / generic modes — effectively three IPs |
-| [`usbdev`](usbdev/) | `hw/ip/` | advanced | 🔲 | generated | Full USB 2.0 FS device; needs a link-layer model |
-| [`flash_ctrl`](flash_ctrl/) | `ip_autogen/` | advanced | 🔲 | generated | Scrambling, ECC, program/erase, lifecycle interaction |
-| [`pwrmgr`](pwrmgr/) | `ip_autogen/` | advanced | 🔲 | generated | Sleep/wake FSM across power domains |
-| [`rv_dm`](rv_dm/) | `hw/ip/` | advanced | 🔲 | generated | RISC-V debug over JTAG; needs a DTM/DMI model |
-| [`aes`](aes/) | `hw/ip/` | security | 🔲 | generated | Masked datapath; reference model + DOM awareness |
-| [`kmac`](kmac/) | `hw/ip/` | security | 🔲 | generated | Keccak core with masking and an app interface |
-| [`csrng`](csrng/) | `hw/ip/` | security | 🔲 | generated | NIST SP 800-90A DRBG; reference model essentially mandatory |
-| [`otbn`](otbn/) | `hw/ip/` | security | 🔲 | generated | A whole processor — ISA-level verification |
+| [`spi_device`](spi_device/) | `hw/ip/` | advanced | ✅ | generated | Flash / passthrough / generic modes — effectively three IPs |
+| [`usbdev`](usbdev/) | `hw/ip/` | advanced | ✅ | generated | Full USB 2.0 FS device; needs a link-layer model |
+| [`flash_ctrl`](flash_ctrl/) | `ip_autogen/` | advanced | ✅ | generated | Scrambling, ECC, program/erase, lifecycle interaction |
+| [`pwrmgr`](pwrmgr/) | `ip_autogen/` | advanced | ✅ | generated | Sleep/wake FSM across power domains |
+| [`rv_dm`](rv_dm/) | `hw/ip/` | advanced | ✅ | generated | RISC-V debug over JTAG; needs a DTM/DMI model |
+| [`aes`](aes/) | `hw/ip/` | security | ✅ | generated | Masked datapath; reference model + DOM awareness |
+| [`kmac`](kmac/) | `hw/ip/` | security | ✅ | generated | Keccak core with masking and an app interface |
+| [`csrng`](csrng/) | `hw/ip/` | security | ✅ | generated | NIST SP 800-90A DRBG; reference model essentially mandatory |
+| [`otbn`](otbn/) | `hw/ip/` | security | ✅ | generated | A whole processor — ISA-level verification |
 
 **Suggested first pick**: `gpio` if you have never built a UVM environment,
 `uart` if you have. Avoid `rv_plic`, `otbn` and `csrng` until you have finished

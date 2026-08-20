@@ -9,10 +9,15 @@
 
 +incdir+$IP_ROOT/spi_host/rtl
 
+// Packages, topologically sorted by their actual cross-references.
+// Regenerate with IP/scripts/order_pkgs.py -- do not hand-sort.
 $IP_ROOT/spi_host/rtl/spi_device_reg_pkg.sv
-$IP_ROOT/spi_host/rtl/spi_device_pkg.sv
 $IP_ROOT/spi_host/rtl/spi_host_cmd_pkg.sv
 $IP_ROOT/spi_host/rtl/spi_host_reg_pkg.sv
+$IP_ROOT/spi_host/rtl/spi_device_pkg.sv
+
+// Modules. Order does not matter in SystemVerilog.
+$IP_ROOT/spi_host/rtl/spi_host.sv
 $IP_ROOT/spi_host/rtl/spi_host_byte_merge.sv
 $IP_ROOT/spi_host/rtl/spi_host_byte_select.sv
 $IP_ROOT/spi_host/rtl/spi_host_command_queue.sv
@@ -21,5 +26,4 @@ $IP_ROOT/spi_host/rtl/spi_host_data_fifos.sv
 $IP_ROOT/spi_host/rtl/spi_host_fsm.sv
 $IP_ROOT/spi_host/rtl/spi_host_reg_top.sv
 $IP_ROOT/spi_host/rtl/spi_host_shift_register.sv
-$IP_ROOT/spi_host/rtl/spi_host.sv
 $IP_ROOT/spi_host/rtl/spi_host_window.sv

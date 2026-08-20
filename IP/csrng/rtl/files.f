@@ -13,14 +13,39 @@
 
 +incdir+$IP_ROOT/csrng/rtl
 
-$IP_ROOT/csrng/rtl/lc_ctrl_state_pkg.sv
-$IP_ROOT/csrng/rtl/lc_ctrl_reg_pkg.sv
+// Packages, topologically sorted by their actual cross-references.
+// Regenerate with IP/scripts/order_pkgs.py -- do not hand-sort.
 $IP_ROOT/csrng/rtl/aes_reg_pkg.sv
-$IP_ROOT/csrng/rtl/lc_ctrl_pkg.sv
+$IP_ROOT/csrng/rtl/aes_sbox_canright_pkg.sv
+$IP_ROOT/csrng/rtl/csrng_reg_pkg.sv
 $IP_ROOT/csrng/rtl/entropy_src_pkg.sv
+$IP_ROOT/csrng/rtl/lc_ctrl_reg_pkg.sv
+$IP_ROOT/csrng/rtl/lc_ctrl_state_pkg.sv
 $IP_ROOT/csrng/rtl/aes_pkg.sv
 $IP_ROOT/csrng/rtl/csrng_pkg.sv
-$IP_ROOT/csrng/rtl/csrng_reg_pkg.sv
+$IP_ROOT/csrng/rtl/lc_ctrl_pkg.sv
+$IP_ROOT/csrng/rtl/edn_pkg.sv
+
+// Modules. Order does not matter in SystemVerilog.
+$IP_ROOT/csrng/rtl/aes_cipher_control.sv
+$IP_ROOT/csrng/rtl/aes_cipher_control_fsm.sv
+$IP_ROOT/csrng/rtl/aes_cipher_control_fsm_n.sv
+$IP_ROOT/csrng/rtl/aes_cipher_control_fsm_p.sv
+$IP_ROOT/csrng/rtl/aes_cipher_core.sv
+$IP_ROOT/csrng/rtl/aes_key_expand.sv
+$IP_ROOT/csrng/rtl/aes_mix_columns.sv
+$IP_ROOT/csrng/rtl/aes_mix_single_column.sv
+$IP_ROOT/csrng/rtl/aes_prng_masking.sv
+$IP_ROOT/csrng/rtl/aes_sbox.sv
+$IP_ROOT/csrng/rtl/aes_sbox_canright.sv
+$IP_ROOT/csrng/rtl/aes_sbox_canright_masked.sv
+$IP_ROOT/csrng/rtl/aes_sbox_canright_masked_noreuse.sv
+$IP_ROOT/csrng/rtl/aes_sbox_dom.sv
+$IP_ROOT/csrng/rtl/aes_sbox_lut.sv
+$IP_ROOT/csrng/rtl/aes_sel_buf_chk.sv
+$IP_ROOT/csrng/rtl/aes_shift_rows.sv
+$IP_ROOT/csrng/rtl/aes_sub_bytes.sv
+$IP_ROOT/csrng/rtl/csrng.sv
 $IP_ROOT/csrng/rtl/csrng_block_encrypt.sv
 $IP_ROOT/csrng/rtl/csrng_cmd_stage.sv
 $IP_ROOT/csrng/rtl/csrng_core.sv
@@ -28,4 +53,4 @@ $IP_ROOT/csrng/rtl/csrng_ctr_drbg.sv
 $IP_ROOT/csrng/rtl/csrng_main_sm.sv
 $IP_ROOT/csrng/rtl/csrng_reg_top.sv
 $IP_ROOT/csrng/rtl/csrng_state_db.sv
-$IP_ROOT/csrng/rtl/csrng.sv
+$IP_ROOT/csrng/rtl/prim_lc_sync.sv

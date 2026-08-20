@@ -5,7 +5,11 @@
 
 +incdir+$IP_ROOT/gpio/rtl
 
+// Packages, topologically sorted by their actual cross-references.
+// Regenerate with IP/scripts/order_pkgs.py -- do not hand-sort.
 $IP_ROOT/gpio/rtl/gpio_pkg.sv
 $IP_ROOT/gpio/rtl/gpio_reg_pkg.sv
-$IP_ROOT/gpio/rtl/gpio_reg_top.sv
+
+// Modules. Order does not matter in SystemVerilog.
 $IP_ROOT/gpio/rtl/gpio.sv
+$IP_ROOT/gpio/rtl/gpio_reg_top.sv

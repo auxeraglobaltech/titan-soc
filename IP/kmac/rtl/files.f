@@ -16,20 +16,25 @@
 
 +incdir+$IP_ROOT/kmac/rtl
 
+// Packages, topologically sorted by their actual cross-references.
+// Regenerate with IP/scripts/order_pkgs.py -- do not hand-sort.
 $IP_ROOT/kmac/rtl/csrng_reg_pkg.sv
-$IP_ROOT/kmac/rtl/lc_ctrl_state_pkg.sv
-$IP_ROOT/kmac/rtl/lc_ctrl_reg_pkg.sv
-$IP_ROOT/kmac/rtl/keymgr_reg_pkg.sv
 $IP_ROOT/kmac/rtl/entropy_src_pkg.sv
-$IP_ROOT/kmac/rtl/csrng_pkg.sv
-$IP_ROOT/kmac/rtl/lc_ctrl_pkg.sv
-$IP_ROOT/kmac/rtl/keymgr_pkg.sv
-$IP_ROOT/kmac/rtl/edn_pkg.sv
-$IP_ROOT/kmac/rtl/kmac_pkg.sv
+$IP_ROOT/kmac/rtl/keymgr_reg_pkg.sv
 $IP_ROOT/kmac/rtl/kmac_reg_pkg.sv
+$IP_ROOT/kmac/rtl/lc_ctrl_reg_pkg.sv
+$IP_ROOT/kmac/rtl/lc_ctrl_state_pkg.sv
 $IP_ROOT/kmac/rtl/sha3_pkg.sv
+$IP_ROOT/kmac/rtl/csrng_pkg.sv
+$IP_ROOT/kmac/rtl/keymgr_pkg.sv
+$IP_ROOT/kmac/rtl/kmac_pkg.sv
+$IP_ROOT/kmac/rtl/lc_ctrl_pkg.sv
+$IP_ROOT/kmac/rtl/edn_pkg.sv
+
+// Modules. Order does not matter in SystemVerilog.
 $IP_ROOT/kmac/rtl/keccak_2share.sv
 $IP_ROOT/kmac/rtl/keccak_round.sv
+$IP_ROOT/kmac/rtl/kmac.sv
 $IP_ROOT/kmac/rtl/kmac_app.sv
 $IP_ROOT/kmac/rtl/kmac_core.sv
 $IP_ROOT/kmac/rtl/kmac_entropy.sv
@@ -38,6 +43,6 @@ $IP_ROOT/kmac/rtl/kmac_msgfifo.sv
 $IP_ROOT/kmac/rtl/kmac_reduced.sv
 $IP_ROOT/kmac/rtl/kmac_reg_top.sv
 $IP_ROOT/kmac/rtl/kmac_staterd.sv
-$IP_ROOT/kmac/rtl/kmac.sv
-$IP_ROOT/kmac/rtl/sha3pad.sv
+$IP_ROOT/kmac/rtl/prim_lc_sync.sv
 $IP_ROOT/kmac/rtl/sha3.sv
+$IP_ROOT/kmac/rtl/sha3pad.sv

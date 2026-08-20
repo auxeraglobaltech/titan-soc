@@ -14,12 +14,10 @@ testplan, and builds the UVM environment themselves.
 one for every IP; handing it over would defeat the exercise. Upstream `dv/` is
 referenced as a *last-resort* reference, not copied in.
 
-**Status**: **23 IPs scaffolded**, covering the whole lowRISC peripheral /
-system / security set. 6 of them are confirmed elaborating clean on Xcelium
-(`gpio`, `pwm`, `uart`, `i2c`, `spi_host`, `rv_plic`) and the UVM path is proven
-end to end (gpio ran `TEST PASSED`, `UVM_ERROR: 0`). **The other 17 are
-generated but unverified** — see [§5](#5-execution-plan). Zero environments
-built anywhere; that is the trainee's job.
+**Status**: ✅ **23 IPs scaffolded, all 23 elaborating clean on Xcelium**
+(verified 2026-08-20), covering the whole lowRISC peripheral / system /
+security set. The UVM path is proven end to end (gpio ran `TEST PASSED`,
+`UVM_ERROR: 0`). Zero environments built anywhere — that is the trainee's job.
 
 ---
 
@@ -136,8 +134,8 @@ That is the deliverable. Everything above it is the exercise.
 | 6 | Scaffold `i2c`, `spi_host`, `pwm`, `rv_plic` | ✅ |
 | 7 | Operator runs the four new compile checks | ✅ **all clean 2026-08-20** |
 | 8 | Build the generators (`resolve_deps.py`, `gen_tb.py`, `gen_readme.py`) | ✅ |
-| 9 | Mass-generate the remaining 17 IPs | ✅ built — **elaboration unverified** |
-| 10 | Operator runs `IP/scripts/compile_all.sh` over all 23 | 🔄 pending |
+| 9 | Mass-generate the remaining 17 IPs | ✅ |
+| 10 | Operator runs `IP/scripts/compile_all.sh` over all 23 | ✅ **23/23 clean, 2026-08-20** |
 | 11 | Curate the 17 generated READMEs (ongoing, can be trainee work) | 🔲 |
 
 Step 4 is a hard gate. Nothing is replicated until elaboration is proven —
@@ -245,6 +243,37 @@ Both would have been copied 17 times:
   and point at `uart`/`rv_plic` as examples of a curated page. Padding 17 pages
   with plausible-sounding spec commentary would have been worse than useless —
   a trainee cannot tell invented emphasis from real.
+
+### Getting from 12/23 to 23/23 — four rounds
+
+The first batch run passed 12/23. Every failure was in the tooling, not the
+IPs, and each round exposed a genuinely different class of problem:
+
+| Round | Result | What was wrong |
+|---|---|---|
+| 1 | 12/23 | **Package order was alphabetical, not topological.** `aes_pkg` references `aes_reg_pkg` but sorts first. `resolve_deps.py` also emitted external packages in reverse-discovery order, only an approximation of a topological sort. Fixed by `order_pkgs.py` (real Kahn sort); a semantic no-op on all 12 already passing. |
+| 2 | 19/23 | **Excluded modules were never resolved.** Documented in run 1 as "add `prim_lc_sync` to the IP's own filelist", then never implemented — the resolver only handled packages. **9 IPs** needed it. Also: the reference regex required a `_pkg` suffix, so `rv_dm`'s package (literally named `dm`) was invisible. |
+| 3 | 20/23 | **Cross-IP *module* dependencies.** `pinmux` instantiates `usbdev_aon_wake`, `rv_dm` instantiates `dm_top` — neither a package nor a prim. Replaced the hardcoded 14-file exception list with general module resolution; the special case now falls out for free. |
+| 4 | **23/23** | **Module-local parameters.** `csrng`'s `NumHwApps` is a derived `localparam` and `kmac`'s `NumAppIntf` a plain `parameter`, both in the module's `#(...)` block and in no package — so no import could reach them. `gen_tb.py` now replicates the parameter block. And `rv_dm` had pulled the *Xilinx* `dmi_jtag_tap` (from `dmi_bscane_tap.sv`, instantiating the `BSCANE2` hard macro) because the module index picked alphabetically; it now prefers the file whose name matches the module. |
+
+Two things this sequence is worth remembering for:
+
+- **`csrng` legitimately pulls in the entire AES cipher core** (20 files). It is
+  a NIST SP 800-90A CTR_DRBG, and CTR_DRBG uses AES as its block cipher. No one
+  reasoning by hand would have predicted that dependency.
+- **Each fix was regression-tested against the already-passing IPs before being
+  applied.** The general module resolution in round 3 was the risky one — a
+  too-loose instantiation regex would pull in junk everywhere — so it was run
+  against all 11 passing IPs first and confirmed to resolve to *nothing*.
+
+### Known wrinkle
+
+`gen_tb.py`'s round-4 change also alters the generated output for four IPs that
+were already passing (`adc_ctrl`, `flash_ctrl`, `spi_device`, `rv_dm`), by
+adding an `import <ip>_pkg::*` line. Those files were **deliberately not
+regenerated** — they work, and an unnecessary import risks name ambiguity for
+no gain. Consequence: regenerating those four would produce slightly different
+(still valid) files from what is checked in.
 
 ### Cross-IP dependency load
 

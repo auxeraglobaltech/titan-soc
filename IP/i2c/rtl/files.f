@@ -3,13 +3,17 @@
 
 +incdir+$IP_ROOT/i2c/rtl
 
+// Packages, topologically sorted by their actual cross-references.
+// Regenerate with IP/scripts/order_pkgs.py -- do not hand-sort.
 $IP_ROOT/i2c/rtl/i2c_pkg.sv
 $IP_ROOT/i2c/rtl/i2c_reg_pkg.sv
+
+// Modules. Order does not matter in SystemVerilog.
+$IP_ROOT/i2c/rtl/i2c.sv
 $IP_ROOT/i2c/rtl/i2c_bus_monitor.sv
 $IP_ROOT/i2c/rtl/i2c_controller_fsm.sv
 $IP_ROOT/i2c/rtl/i2c_core.sv
-$IP_ROOT/i2c/rtl/i2c_fifos.sv
 $IP_ROOT/i2c/rtl/i2c_fifo_sync_sram_adapter.sv
+$IP_ROOT/i2c/rtl/i2c_fifos.sv
 $IP_ROOT/i2c/rtl/i2c_reg_top.sv
-$IP_ROOT/i2c/rtl/i2c.sv
 $IP_ROOT/i2c/rtl/i2c_target_fsm.sv

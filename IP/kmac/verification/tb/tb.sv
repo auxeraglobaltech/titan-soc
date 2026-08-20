@@ -38,6 +38,10 @@ module tb;
     rst_n = 1'b1;
   end
 
+  // Parameters the port widths depend on, copied from the module
+  // header. The DUT is instantiated with defaults, so these match.
+  localparam int unsigned NumAppIntf         = 3;
+
   // Port declarations. Inputs are tied to constants -- never floating.
   tlul_pkg::tl_h2d_t tl_i = tlul_pkg::TL_H2D_DEFAULT;
   tlul_pkg::tl_d2h_t tl_o ;
