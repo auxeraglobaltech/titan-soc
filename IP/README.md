@@ -67,6 +67,9 @@ README has hand-written spec analysis (`curated`) or only extracted facts
 | [`csrng`](csrng/) | `hw/ip/` | security | ✅ | generated | NIST SP 800-90A DRBG; reference model essentially mandatory |
 | [`otbn`](otbn/) | `hw/ip/` | security | ✅ | generated | A whole processor — ISA-level verification |
 
+> 👥 **Team assignments and the full IP catalogue with spec links:**
+> [`ASSIGNMENTS.md`](ASSIGNMENTS.md)
+
 **Suggested first pick**: `gpio` if you have never built a UVM environment,
 `uart` if you have. Avoid `rv_plic`, `otbn` and `csrng` until you have finished
 one — they are the ones where a directed-test approach genuinely does not work.
