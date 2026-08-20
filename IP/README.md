@@ -32,21 +32,51 @@ checks nothing.
 
 ## Available IPs
 
-| IP | Source tree | Tier | Elaborates | Env built | Why pick it |
+23 IPs, covering the whole lowRISC
+[peripheral](https://lowrisc.org/peripheral-ip/) /
+[system](https://lowrisc.org/system-ip/) /
+[security](https://lowrisc.org/security-ip/) set.
+
+**Elaborates** = confirmed building clean on Xcelium. **Docs** = whether the
+README has hand-written spec analysis (`curated`) or only extracted facts
+(`generated` — improving it is part of the exercise).
+
+| IP | Source | Tier | Elaborates | Docs | Why pick it |
 |---|---|---|---|---|---|
-| [`gpio`](gpio/) | `ip_autogen/` | starter | ✅ | 🔲 | Simplest. No protocol — checking is "did the pin do what the register said" |
-| [`pwm`](pwm/) | `ip_autogen/` | starter | ✅ | 🔲 | Small register file, no interrupts, but **two clock domains** |
-| [`uart`](uart/) | `hw/ip/` | intermediate | ✅ | 🔲 | First real serial protocol; 9 interrupts; FIFOs and watermarks |
-| [`i2c`](i2c/) | `hw/ip/` | intermediate+ | ✅ | 🔲 | Open-drain bus, controller **and** target mode, 15 interrupts |
-| [`spi_host`](spi_host/) | `hw/ip/` | intermediate+ | ✅ | 🔲 | 3 data widths × 4 clock modes; segmented commands |
-| [`rv_plic`](rv_plic/) | `ip_autogen/` | advanced | ✅ | 🔲 | 186 sources; needs a model-based scoreboard, not directed tests |
+| [`gpio`](gpio/) | `ip_autogen/` | starter | ✅ | curated | Simplest. No protocol — "did the pin do what the register said" |
+| [`pwm`](pwm/) | `ip_autogen/` | starter | ✅ | curated | Small register file, no interrupts, but **two clock domains** |
+| [`rv_timer`](rv_timer/) | `hw/ip/` | starter | 🔲 | generated | One counter, one comparator, one interrupt |
+| [`pattgen`](pattgen/) | `hw/ip/` | starter | 🔲 | generated | Two channels shifting a programmed pattern out |
+| [`aon_timer`](aon_timer/) | `hw/ip/` | starter | 🔲 | generated | Wakeup + watchdog counters in the always-on domain |
+| [`hmac`](hmac/) | `hw/ip/` | starter+ | 🔲 | generated | Streaming hash — the reference model is a library call |
+| [`uart`](uart/) | `hw/ip/` | intermediate | ✅ | curated | First real serial protocol; 9 interrupts; FIFOs and watermarks |
+| [`adc_ctrl`](adc_ctrl/) | `hw/ip/` | intermediate | 🔲 | generated | Sampling FSM with filters and a wakeup path |
+| [`mbx`](mbx/) | `hw/ip/` | intermediate | 🔲 | generated | Doorbell / inbox / outbox between two bus masters |
+| [`dma`](dma/) | `hw/ip/` | intermediate | 🔲 | generated | **Initiates** bus traffic — you need a TL-UL *device* agent too |
+| [`pinmux`](pinmux/) | `ip_autogen/` | intermediate | 🔲 | generated | Large muxing matrix plus wakeup detectors |
+| [`i2c`](i2c/) | `hw/ip/` | intermediate+ | ✅ | curated | Open-drain bus, controller **and** target mode, 15 interrupts |
+| [`spi_host`](spi_host/) | `hw/ip/` | intermediate+ | ✅ | curated | 3 data widths × 4 clock modes; segmented commands |
+| [`rv_plic`](rv_plic/) | `ip_autogen/` | advanced | ✅ | curated | 186 sources; needs a model-based scoreboard, not directed tests |
+| [`spi_device`](spi_device/) | `hw/ip/` | advanced | 🔲 | generated | Flash / passthrough / generic modes — effectively three IPs |
+| [`usbdev`](usbdev/) | `hw/ip/` | advanced | 🔲 | generated | Full USB 2.0 FS device; needs a link-layer model |
+| [`flash_ctrl`](flash_ctrl/) | `ip_autogen/` | advanced | 🔲 | generated | Scrambling, ECC, program/erase, lifecycle interaction |
+| [`pwrmgr`](pwrmgr/) | `ip_autogen/` | advanced | 🔲 | generated | Sleep/wake FSM across power domains |
+| [`rv_dm`](rv_dm/) | `hw/ip/` | advanced | 🔲 | generated | RISC-V debug over JTAG; needs a DTM/DMI model |
+| [`aes`](aes/) | `hw/ip/` | security | 🔲 | generated | Masked datapath; reference model + DOM awareness |
+| [`kmac`](kmac/) | `hw/ip/` | security | 🔲 | generated | Keccak core with masking and an app interface |
+| [`csrng`](csrng/) | `hw/ip/` | security | 🔲 | generated | NIST SP 800-90A DRBG; reference model essentially mandatory |
+| [`otbn`](otbn/) | `hw/ip/` | security | 🔲 | generated | A whole processor — ISA-level verification |
 
 **Suggested first pick**: `gpio` if you have never built a UVM environment,
-`uart` if you have. `rv_plic` last — it is the one where a directed-test
-approach genuinely does not work.
+`uart` if you have. Avoid `rv_plic`, `otbn` and `csrng` until you have finished
+one — they are the ones where a directed-test approach genuinely does not work.
 
-More IPs are scaffolded with [`scripts/new_ip.sh`](scripts/new_ip.sh); see the
-execution plan in [`docs/IP_WORK.md`](../docs/IP_WORK.md#5-execution-plan).
+**Not an IP folder**: the TileLink interconnect from the lowRISC system-IP page
+is not scaffolded separately — it is the substrate every IP here compiles
+against, and lives in [`common/rtl/tlul/`](common/README.md).
+
+Add another with [`scripts/new_ip.sh`](scripts/new_ip.sh); see the execution
+plan in [`docs/IP_WORK.md`](../docs/IP_WORK.md#5-execution-plan).
 
 ---
 
@@ -59,7 +89,11 @@ IP/
 │   ├── tb/           tb_clk_if.sv, the one shared interface
 │   └── common.f      shared filelist, generated by scripts/gen_common_f.sh
 ├── scripts/
+│   ├── new_ip.sh          scaffold a new IP from the vendor tree
 │   ├── compile_check.sh   the xrun driver every IP uses
+│   ├── resolve_deps.py    transitive package resolution for one IP
+│   ├── gen_tb.py          build tb.sv from a module header
+│   ├── gen_readme.py      build a factual README from the RTL + docs
 │   └── gen_common_f.sh    regenerates common.f after a re-copy
 └── <ip>/
     ├── README.md          what the IP is, spec links, source, status

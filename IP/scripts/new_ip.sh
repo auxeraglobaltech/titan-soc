@@ -29,11 +29,13 @@ V="$REPO/vendor/opentitan"
 
 IP="$1"; shift
 AUTOGEN=0
+AUTO_DEPS=0
 EXTRA_RTL=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --autogen)   AUTOGEN=1 ;;
+    --auto-deps) AUTO_DEPS=1 ;;
     --extra-rtl) EXTRA_RTL+=("$2"); shift ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
@@ -49,6 +51,13 @@ else
 fi
 
 [[ -d "$SRC/rtl" ]] || { echo "no RTL at $SRC/rtl -- wrong name, or try --autogen" >&2; exit 1; }
+
+# Resolve externally-owned packages transitively rather than by hand.
+if [[ $AUTO_DEPS -eq 1 ]]; then
+  while IFS= read -r dep; do
+    [[ -n "$dep" ]] && EXTRA_RTL+=("$dep")
+  done < <("$IP_ROOT/scripts/resolve_deps.py" "$IP" --src "$SRC_REL/rtl")
+fi
 
 DST="$IP_ROOT/$IP"
 mkdir -p "$DST"/{docs,rtl,verification/tb,verification/tests,sim/runs}
@@ -179,55 +188,102 @@ exec "$(dirname "${BASH_SOURCE[0]}")/../../scripts/compile_check.sh" @IP@ "$@"
 EOF
 chmod +x "$DST/sim/run_compile.sh"
 
-# ------------------------------------------------------------- tb.sv stub
-PORTS="$(sed -n "/^module ${IP}\b/,/^);/p" "$DST/rtl/$IP.sv" | sed 's/^/  \/\/ /')"
-cat > "$DST/verification/tb/tb.sv" <<EOF
-// $IP -- COMPILE-CHECK TESTBENCH  *** GENERATED STUB, NEEDS HAND-FINISHING ***
-//
-// TODO: instantiate the DUT and tie off every input. The module header is
-// reproduced below for reference. Tie inputs to a CONSTANT, never leave them
-// floating -- an X propagating into the register file trips the TL-UL dKnown
-// assertions and the failure surfaces long after the real cause.
+# --------------------------------------------------- verification/README.md
+sed -e "s|@IP@|$IP|g" -e "s|@DV@|$SRC_REL/dv|g" \
+    > "$DST/verification/README.md" <<'EOF'
+# @IP@ — verification (trainee brief)
 
-module tb;
+**What is here**: a testbench that elaborates the DUT and runs a UVM test that
+checks nothing. **Everything else is yours to build.**
 
-  import uvm_pkg::*;
-  import ${IP}_test_pkg::*;
-  \`include "uvm_macros.svh"
+```
+tb/tb.sv                  clk/rst, DUT instance, all inputs tied off, run_test()
+tests/@IP@_test_pkg.sv    one uvm_test: wait for reset, idle 1000 clks, pass
+@IP@_tb.f                 the compile filelist
+```
 
-  logic clk, rst_n;
+No agent. No driver. No monitor. No sequencer. No scoreboard. No RAL. No
+coverage. That is the point — see [`../../README.md`](../../README.md).
 
-  initial begin
-    clk = 1'b0;
-    forever #5ns clk = ~clk;
-  end
+---
 
-  initial begin
-    rst_n = 1'b0;
-    repeat (10) @(posedge clk);
-    rst_n = 1'b1;
-  end
+## Step 0 — prove it compiles before you touch anything
 
-$PORTS
+```bash
+source scripts/activate_env.sh
+cd IP/@IP@/sim
+./run_compile.sh
+grep -E "TEST PASSED|^UVM_(ERROR|FATAL)" runs/compile.log
+```
 
-  // TODO: DUT instance here.
+Do this **first**. If elaboration is already broken you want to know before you
+have added 2000 lines, so that every later error is provably yours.
 
-  tb_clk_if clk_if (.clk(clk), .rst_n(rst_n));
+> `stat -c "%y" runs/compile.log` before trusting it — the run directory is
+> overwritten in place, so a failed build leaves the previous log looking fine.
+> The chip track lost a full debug cycle to exactly this.
 
-  initial begin
-    uvm_config_db#(virtual tb_clk_if)::set(null, "*", "clk_if", clk_if);
-    run_test();
-  end
+---
 
-  initial begin
-    #1ms;
-    \`uvm_fatal("TB", "timeout -- simulation ran for 1ms with no test completion")
-  end
+## Step 1 — read the spec and write a testplan
 
-endmodule
+Read `../docs/theory_of_operation.md` and `../docs/registers.md`. Enumerate
+every feature, then write `testplan.md` next to this file, using the format in
+[`testplan/README.md`](../../../testplan/README.md): feature / test / pass
+criteria / coverage goal.
+
+Write it before you write any SystemVerilog. A testplan derived from a TB you
+already built will only ever describe what you happened to implement.
+
+---
+
+## Step 2 — build the environment
+
+Suggested order. Each step is independently verifiable — do not write the whole
+thing and then start debugging.
+
+1. **TL-UL host agent.** Do not write one. Reuse
+   `vendor/opentitan/hw/dv/sv/tl_agent`. Getting it instantiated, connected to
+   `tl_i`/`tl_o` through a `tl_if`, and issuing one register read is the single
+   biggest step here.
+2. **RAL.** Generate from `../docs/@IP@.hjson` with
+   `vendor/opentitan/util/regtool.py`. Then do a register read/write test —
+   that proves agent + RAL + connectivity in one go.
+3. **Reset and CSR tests.** Every register reads its documented reset value;
+   every RW field holds what you write. Nearly free once the RAL exists, and it
+   catches address-decode bugs early.
+4. **Pin-level agent.** The IP-specific part: drive and monitor the DUT's own
+   interface.
+5. **Scoreboard.** Predict outputs from bus activity and compare. This is where
+   the actual verification happens.
+6. **Interrupts.** The `INTR_STATE` / `INTR_ENABLE` / `INTR_TEST` register
+   triple that every comportable IP has, plus each `intr_*_o` line.
+7. **Coverage.** Functional covergroups tied to your testplan's coverage goals.
+
+Replace `tb/tb.sv` as you go. Keep the DUT instantiation and clock/reset
+generation — those are correct — and swap the tie-offs for interfaces.
+
+---
+
+## Rules
+
+- **One simulation at a time** on the shared server. Check `who` first.
+- Tie off every unused DUT input. A floating input propagates X into the
+  register file and trips the TL-UL `dKnown` assertions, and the failure
+  surfaces long after the real cause.
+- Do not edit `../rtl/` — except deliberately, to inject a bug and prove your
+  TB catches it. `git diff` shows what you broke; revert afterwards.
+- Do not read `vendor/opentitan/@DV@/` until you have attempted the piece
+  yourself. It is the full upstream environment — reading it first turns this
+  exercise into a transcription task.
 EOF
 
+# ------------------------------------------------------------------- tb.sv
+# Generated from the module header: every port declared, every input tied to a
+# constant. Validated against six hand-written testbenches -- see docs/IP_WORK.md.
+"$IP_ROOT/scripts/gen_tb.py" "$IP" --src "$SRC_REL/rtl" > "$DST/verification/tb/tb.sv"
+
 echo "scaffolded IP/$IP from $SRC_REL"
-echo "  rtl:   $(ls "$DST"/rtl/*.sv | wc -l) files"
+echo "  rtl:   $(ls "$DST"/rtl/*.sv | wc -l) files ($(( ${#EXTRA_RTL[@]} )) external deps)"
 echo "  docs:  $(ls "$DST"/docs 2>/dev/null | wc -l) files"
-echo "  TODO:  finish verification/tb/tb.sv and write README.md"
+echo "  ports: $(grep -cE '^\s+\.\w+' "$DST/verification/tb/tb.sv") connected"

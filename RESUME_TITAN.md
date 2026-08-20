@@ -16,7 +16,7 @@ session is about before reading further.
 | Track | Doc | Status | Next action |
 |---|---|---|---|
 | **SoC** — chip-level DV on Earl Grey | [`docs/SOC_WORK.md`](docs/SOC_WORK.md) | Phase 5, 9/9 smoke tests passing | Run `./sim/regress.sh` end to end (backlog #7) |
-| **IP** — block-level DV playground | [`docs/IP_WORK.md`](docs/IP_WORK.md) | ✅ 6 IPs built, **all elaborate clean**, UVM path proven | Mass-generate the remaining ~20 IPs with `IP/scripts/new_ip.sh`, or hand an IP to a trainee |
+| **IP** — block-level DV playground | [`docs/IP_WORK.md`](docs/IP_WORK.md) | 🔄 **23 IPs scaffolded**; 6 verified elaborating, **17 unverified** | Run `IP/scripts/compile_all.sh` to verify the 17, then hand IPs to trainees |
 
 The rest of this file is **SoC-track** state. IP-track state lives in
 `docs/IP_WORK.md`.

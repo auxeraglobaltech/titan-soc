@@ -14,10 +14,12 @@ testplan, and builds the UVM environment themselves.
 one for every IP; handing it over would defeat the exercise. Upstream `dv/` is
 referenced as a *last-resort* reference, not copied in.
 
-**Status**: ✅ **6 IPs built and elaborating clean** on Xcelium as of 2026-08-20
-— `gpio`, `pwm`, `uart`, `i2c`, `spi_host`, `rv_plic`. The UVM path is proven
-end to end (gpio ran `TEST PASSED`, `UVM_ERROR: 0`). Zero environments built —
-that is the trainee's job. See [§5](#5-execution-plan).
+**Status**: **23 IPs scaffolded**, covering the whole lowRISC peripheral /
+system / security set. 6 of them are confirmed elaborating clean on Xcelium
+(`gpio`, `pwm`, `uart`, `i2c`, `spi_host`, `rv_plic`) and the UVM path is proven
+end to end (gpio ran `TEST PASSED`, `UVM_ERROR: 0`). **The other 17 are
+generated but unverified** — see [§5](#5-execution-plan). Zero environments
+built anywhere; that is the trainee's job.
 
 ---
 
@@ -41,22 +43,26 @@ IP/
 ├── README.md                    index: IP table, difficulty, how to start
 ├── common/
 │   ├── rtl/                     shared dependencies, copied once
-│   │   ├── prim/                165 files — primitives library
+│   │   ├── prim/                165 files — primitives library (14 excluded from common.f)
 │   │   ├── prim_generic/         30 files — concrete impls of abstract prims
 │   │   ├── tlul/                 29 files — TileLink-UL fabric
 │   │   └── top/                 top_pkg.sv, top_racl_pkg.sv
 │   ├── common.f                 filelist + incdirs for all of the above
+│   ├── tb/tb_clk_if.sv          the one shared interface
 │   └── README.md                what these are, and the abstract-prim gotcha
-│   └── tb/tb_clk_if.sv          the one shared interface
 ├── scripts/
-│   ├── new_ip.sh                scaffold a new IP from the vendor tree
+│   ├── new_ip.sh                scaffold a new IP (--auto-deps chains the rest)
+│   ├── resolve_deps.py          transitive package resolution for one IP
+│   ├── gen_tb.py                build tb.sv from a module header
+│   ├── gen_readme.py            build a factual README from the RTL + docs
 │   ├── compile_check.sh         shared xrun driver used by every IP
+│   ├── compile_all.sh           run several IPs, print a summary table
 │   └── gen_common_f.sh          regenerate common.f after a re-copy
 └── <ip>/                        one folder per IP
     ├── README.md                what it does, spec links, vendor paths, status
     ├── docs/                    copied upstream doc/ + register description
     ├── rtl/
-    │   ├── *.sv                 copied IP RTL (4–14 files)
+    │   ├── *.sv                 copied IP RTL (4–49 files, incl. external pkgs)
     │   └── files.f              this IP's filelist
     ├── verification/
     │   ├── tb/tb.sv             clk/rst, DUT instance, tie-offs, run_test()
@@ -74,8 +80,8 @@ IP/
 
 | Decision | Choice | Why |
 |---|---|---|
-| RTL provenance | **Physical copy** into `IP/<ip>/rtl/` | Self-contained; the engineer can inject bugs to prove the TB catches them. Cost: drifts if the submodule is bumped — see [§6](#6-known-risks). |
-| First-pass scope | **6 IPs**: `uart`, `i2c`, `spi_host`, `gpio`, `pwm`, `rv_plic` | Spans both vendor trees and three difficulty tiers. Prove the template, then mass-generate the rest. |
+| RTL provenance | **Physical copy** into `IP/<ip>/rtl/` | Self-contained; the engineer can inject bugs to prove the TB catches them. Cost: drifts if the submodule is bumped — see [§7](#7-known-risks). |
+| First-pass scope | **6 IPs**: `uart`, `i2c`, `spi_host`, `gpio`, `pwm`, `rv_plic` | Spans both vendor trees and three difficulty tiers. Prove the template, then mass-generate the rest — which is what [§6](#6-mass-generation-2026-08-20) did, taking it to 23. |
 | Run flow | **Standalone `xrun`** script per IP | No dvsim, no FuseSoC, no Bazel. A trainee can read the whole command in one screen and debug it. |
 
 ### Where each IP comes from
@@ -129,18 +135,20 @@ That is the deliverable. Everything above it is the exercise.
 | 5 | Write `new_ip.sh`, generalising from the two proven IPs | ✅ |
 | 6 | Scaffold `i2c`, `spi_host`, `pwm`, `rv_plic` | ✅ |
 | 7 | Operator runs the four new compile checks | ✅ **all clean 2026-08-20** |
-| 8 | Mass-generate the remaining ~20 IPs | 🔲 next |
+| 8 | Build the generators (`resolve_deps.py`, `gen_tb.py`, `gen_readme.py`) | ✅ |
+| 9 | Mass-generate the remaining 17 IPs | ✅ built — **elaboration unverified** |
+| 10 | Operator runs `IP/scripts/compile_all.sh` over all 23 | 🔄 pending |
+| 11 | Curate the 17 generated READMEs (ongoing, can be trainee work) | 🔲 |
 
 Step 4 is a hard gate. Nothing is replicated until elaboration is proven —
 otherwise a filelist mistake gets copied twenty times. Two IPs are built rather
 than one specifically because they come from *different vendor trees*
 (`hw/ip/` vs `ip_autogen/`), which is the difference most likely to break.
 
-`new_ip.sh` is deliberately deferred to step 5: a generator written before any
-IP has compiled would be generalising from an unproven template. The per-IP
-`tb.sv` also cannot be fully generated — port connections differ — so it will
-emit a stub with the DUT ports extracted from the module header, to be
-hand-finished.
+`new_ip.sh` is deliberately deferred to step 5, and the three generators to
+step 8: a generator written before any IP has compiled would be generalising
+from an unproven template. Both were validated against already-passing IPs
+before being used at scale — see [§6](#6-mass-generation-2026-08-20).
 
 ### Verification status
 
@@ -198,6 +206,65 @@ That the two IPs failed in exactly the same 14 files, and that both DUTs parsed
 clean, is the useful signal — it says the substrate is shared correctly and the
 per-IP layering works.
 
+---
+
+## 6. Mass generation (2026-08-20)
+
+Hand-writing 17 more IPs was not viable: 17 dependency closures and 17 port
+lists, each a chance to introduce a silent error. Three generators were built
+instead, and — importantly — **validated against the six hand-written IPs
+before being trusted**.
+
+| Script | Does | Validated by |
+|---|---|---|
+| `resolve_deps.py` | Finds packages an IP references that `common/` lacks, transitively, and locates them in the vendor tree | Reproduced the `spi_host` → `spi_device_pkg` answer derived by hand, in the correct order; correctly reported *nothing* for `gpio`/`uart` |
+| `gen_tb.py` | Parses the module header and emits `tb.sv` with every port declared, every input tied to a constant | Port-connection sets compared against all 6 hand-written TBs: **5 exact matches**, `spi_host` differing only by a redundant `#(.NumCS(1))` override |
+| `gen_readme.py` | Emits a README of extracted facts (ports, deps, docs, tier) | n/a — output is facts, not analysis |
+
+`new_ip.sh --auto-deps` chains all three.
+
+### Two bugs the validation caught
+
+Both would have been copied 17 times:
+
+1. **Unqualified parameters.** `module uart import uart_reg_pkg::*;` makes
+   `NumAlerts` visible *inside* the module only. The generated `tb` declared
+   ports of width `[NumAlerts-1:0]` without the import. Fixed by replicating the
+   module header's imports into `tb`, plus the IP's `_reg_pkg` when it exists.
+2. **Over-eager idle-high heuristic** matched `alert_rx_i` (a differential pair
+   with its own default) as if it were a serial RX line. Restricted to `cio_*`.
+
+### Honest limits of the generated output
+
+- **`'0` is not always the right idle level.** Open-drain and serial-idle lines
+  want `1`. Rather than guess, `gen_tb.py` ties them low and emits a `TODO`
+  naming them. The four curated IPs have this fixed by hand; the 17 do not.
+- **No parameter overrides.** Every DUT is instantiated with defaults. Fine for
+  a compile check; wrong for IPs whose interesting behaviour is parameterised.
+- **READMEs are facts, not analysis.** The 17 generated ones say so at the top
+  and point at `uart`/`rv_plic` as examples of a curated page. Padding 17 pages
+  with plausible-sounding spec commentary would have been worse than useless —
+  a trainee cannot tell invented emphasis from real.
+
+### Cross-IP dependency load
+
+The boundary rule from run 1 held up under real pressure. Resolved
+automatically, no hand intervention:
+
+| IP | External packages pulled in |
+|---|---|
+| `flash_ctrl` | 14 |
+| `otbn` | 10 |
+| `aes`, `kmac` | 9 each |
+| `csrng`, `pwrmgr` | 6 each |
+| `pinmux` | 4 |
+| `aon_timer`, `rv_dm` | 3 each |
+| `adc_ctrl` | 1 |
+| the other 8 | 0 |
+
+`aes` pulling in `lc_ctrl`, `keymgr`, `edn` and `csrng` packages is exactly the
+case predicted after run 1 as the one that would exercise the per-IP path.
+
 ### Suggested difficulty tiers for the index
 
 | Tier | IPs | Why |
@@ -209,7 +276,7 @@ per-IP layering works.
 
 ---
 
-## 6. Known risks
+## 7. Known risks
 
 - **Copied RTL drifts from the pinned submodule.** If `vendor/opentitan` is ever
   bumped, `IP/` silently goes stale. Mitigation: each `IP/<ip>/README.md`
@@ -232,7 +299,7 @@ per-IP layering works.
 
 ---
 
-## 7. Open questions for later
+## 8. Open questions for later
 
 - Should `IP/` carry a shared TL-UL agent copy so trainees do not have to wire
   into `hw/dv/sv/`? Leaning **no** — reusing upstream `tl_agent` is itself a
