@@ -12,6 +12,19 @@ and workflow conventions are kept recognizably similar between the two.
 
 ---
 
+## Two work tracks
+
+| Track | Doc | What you do | Status |
+|---|---|---|---|
+| **SoC** | [`docs/SOC_WORK.md`](docs/SOC_WORK.md) | Chip-level DV on Earl Grey — C tests on Ibex + UVM vseqs, reusing the upstream env | Phase 5, 9/9 smoke tests passing |
+| **IP** | [`docs/IP_WORK.md`](docs/IP_WORK.md) | Block-level DV — one IP, real RTL + spec, build the whole UVM env yourself | 🔲 planned |
+
+New to both? Start on the **IP track** — the feedback loop is seconds instead
+of minutes, and chip-level debug assumes you already trust the blocks.
+[`RESUME_TITAN.md`](RESUME_TITAN.md) routes between the two.
+
+---
+
 ## Purpose
 
 Trainees learn chip-level verification by:

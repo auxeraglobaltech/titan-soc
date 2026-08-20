@@ -4,7 +4,22 @@
 > happened, what to do next). For stable reference — SoC description, memory
 > map, commands, DV environment, how to add a test — see
 > **[`docs/MASTER.md`](docs/MASTER.md)**, the single source of truth.
-> Then `git log --oneline -10`. Last updated 2026-08-14.
+> Then `git log --oneline -10`. Last updated 2026-08-20.
+
+---
+
+## Pick a track first
+
+This repo now carries **two independent work tracks**. Decide which one this
+session is about before reading further.
+
+| Track | Doc | Status | Next action |
+|---|---|---|---|
+| **SoC** — chip-level DV on Earl Grey | [`docs/SOC_WORK.md`](docs/SOC_WORK.md) | Phase 5, 9/9 smoke tests passing | Run `./sim/regress.sh` end to end (backlog #7) |
+| **IP** — block-level DV playground | [`docs/IP_WORK.md`](docs/IP_WORK.md) | ✅ 6 IPs built, **all elaborate clean**, UVM path proven | Mass-generate the remaining ~20 IPs with `IP/scripts/new_ip.sh`, or hand an IP to a trainee |
+
+The rest of this file is **SoC-track** state. IP-track state lives in
+`docs/IP_WORK.md`.
 
 ---
 
